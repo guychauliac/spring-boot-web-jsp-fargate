@@ -1,0 +1,3738 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: openpaas-jenkins-deploy
+      created-by: template
+      template: openpaas-jenkins-deploy
+    name: openpaas-jenkins-deploy
+  spec:
+    replicas: 0
+    selector:
+      app: openpaas-jenkins-deploy
+      deploymentconfig: openpaas-jenkins-deploy
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 1200
+      resources:
+        limits:
+          cpu: 187m
+          memory: 512Mi
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: openpaas-jenkins-deploy
+          deploymentconfig: openpaas-jenkins-deploy
+      spec:
+        containers:
+        - env:
+          - name: OPENSHIFT_ENABLE_OAUTH
+            value: "false"
+          - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
+            value: "true"
+          - name: KUBERNETES_MASTER
+            value: https://kubernetes.default.svc.cluster.local:443
+          - name: KUBERNETES_TRUST_CERTIFICATES
+            value: "true"
+          - name: JNLP_SERVICE_NAME
+            value: openpaas-jenkins-deploy-jnlp
+          - name: JAVA_OPTS
+            value: -Dorg.csanchez.jenkins.plugins.kubernetes.pipeline.PodTemplateStepExecution.defaultImage=172.30.37.22:5000/jenkins/openpaas-jenkins-slave-jnlp:release
+          - name: APPLICATION_NAME
+            value: openpaas-jenkins-deploy
+          - name: AUTO_INSTALL
+            value: "False"
+          - name: NAME_SPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: DOCKER_REGISTRY_ENDPOINT
+            value: 172.30.37.22:5000
+          - name: http_proxy
+            value: http://egress-http-proxy:8080
+          - name: https_proxy
+            value: http://egress-http-proxy:8080
+          - name: HTTP_PROXY
+            value: http://egress-http-proxy:8080
+          - name: HTTPS_PROXY
+            value: http://egress-http-proxy:8080
+          image: 172.30.37.22:5000/jenkins/jenkins-openpaas:release
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 420
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: jenkins-openpaas
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 50000
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 150m
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/jenkins
+            name: jenkins-openpaas-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: openpaas-jenkins-deploy
+        serviceAccountName: openpaas-jenkins-deploy
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: jenkins-openpaas-data
+          persistentVolumeClaim:
+            claimName: jenkins-openpaas-data
+    test: false
+    triggers:
+    - type: ConfigChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template
+  spec:
+    replicas: 1
+    selector:
+      deploymentConfig: pc-cpq-template
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          application: pc-cpq-template
+          deploymentConfig: pc-cpq-template
+        name: pc-cpq-template
+      spec:
+        containers:
+        - env:
+          - name: DB_SERVICE_PREFIX_MAPPING
+            value: pc-cpq-template-mongodb=DB
+          - name: DB_JNDI
+          - name: DB_USERNAME
+            value: layoutdbit
+          - name: DB_PASSWORD
+            value: jpGGMssDtBT0gCmwCIXKZbSD
+          - name: DB_DATABASE
+            value: pcCpqTemplate
+          - name: DB_ADMIN_PASSWORD
+            value: YqcwqNiJ
+          - name: DB_MIN_POOL_SIZE
+          - name: DB_MAX_POOL_SIZE
+          - name: DB_TX_ISOLATION
+          - name: JWS_HTTPS_CERTIFICATE_DIR
+            value: /etc/jws-secret-volume
+          - name: JWS_HTTPS_CERTIFICATE
+            value: server.crt
+          - name: JWS_HTTPS_CERTIFICATE_KEY
+            value: server.key
+          - name: JWS_HTTPS_CERTIFICATE_PASSWORD
+          - name: JWS_ADMIN_USERNAME
+            value: lC6Aj4L8
+          - name: JWS_ADMIN_PASSWORD
+            value: EqtcEJgr
+          image: pc-cpq-template
+          imagePullPolicy: Always
+          name: pc-cpq-template
+          ports:
+          - containerPort: 8778
+            name: jolokia
+            protocol: TCP
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          - containerPort: 8443
+            name: https
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - curl --noproxy '*' -s -u lC6Aj4L8:EqtcEJgr 'http://localhost:8080/manager/jmxproxy/?get=Catalina%3Atype%3DServer&att=stateName'
+                |grep -iq 'stateName *= *STARTED'
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /etc/jws-secret-volume
+            name: jws-certificate-volume
+            readOnly: true
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: jws-service-account
+        serviceAccountName: jws-service-account
+        terminationGracePeriodSeconds: 60
+        volumes:
+        - name: jws-certificate-volume
+          secret:
+            defaultMode: 420
+            secretName: jws-pc-cpq-template-secret
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - pc-cpq-template
+        from:
+          kind: ImageStreamTag
+          name: pc-cpq-template:latest
+          namespace: pccorp-esales-dev-axa-be
+      type: ImageChange
+    - type: ConfigChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template-mongodb
+  spec:
+    replicas: 1
+    selector:
+      deploymentConfig: pc-cpq-template-mongodb
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          application: pc-cpq-template
+          deploymentConfig: pc-cpq-template-mongodb
+        name: pc-cpq-template-mongodb
+      spec:
+        containers:
+        - env:
+          - name: MONGODB_USER
+            value: layoutdbit
+          - name: MONGODB_PASSWORD
+            value: jpGGMssDtBT0gCmwCIXKZbSD
+          - name: MONGODB_DATABASE
+            value: pcCpqTemplate
+          - name: MONGODB_ADMIN_PASSWORD
+            value: YqcwqNiJ
+          - name: MONGODB_NOPREALLOC
+          - name: MONGODB_SMALLFILES
+          - name: MONGODB_QUIET
+          image: registry.access.redhat.com/rhscl/mongodb-32-rhel7@sha256:8fea1e4a7f3ae48a2e49b74eaa23b919cb7f4ce1d2a2037fc612769116c1e4e5
+          imagePullPolicy: Always
+          name: pc-cpq-template-mongodb
+          ports:
+          - containerPort: 27017
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/mongodb/data
+            name: pc-cpq-template-mongodb-pvol
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 60
+        volumes:
+        - name: pc-cpq-template-mongodb-pvol
+          persistentVolumeClaim:
+            claimName: pc-cpq-template-mongodb-claim
+        - name: volume-d1kb6
+          persistentVolumeClaim:
+            claimName: pc-cpq-template-mongodb-claim
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - pc-cpq-template-mongodb
+        from:
+          kind: ImageStreamTag
+          name: mongodb:3.2
+          namespace: openshift
+      type: ImageChange
+    - type: ConfigChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: spring-boot-web-jsp
+    name: spring-boot-web-jsp
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      app: spring-boot-web-jsp
+      deploymentconfig: spring-boot-web-jsp
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: spring-boot-web-jsp
+          deploymentconfig: spring-boot-web-jsp
+      spec:
+        containers:
+        - image: 172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp@sha256:844f0118940e92f9e061f229c28013a2f31fcb0c13b7c50921faa528d6244a06
+          imagePullPolicy: Always
+          name: spring-boot-web-jsp
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - spring-boot-web-jsp
+        from:
+          kind: ImageStreamTag
+          name: spring-boot-web-jsp:latest
+          namespace: pccorp-esales-dev-axa-be
+      type: ImageChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template
+  spec:
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: pc-cpq-template:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      git:
+        ref: development
+        uri: git@github.axa.com:axa-be-esalesandservicing/be.axa.pc.cpq.api.template.git
+      sourceSecret:
+        name: my-secret-name
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: MAVEN_MIRROR_URL
+          value: http://10.243.145.63:7000/artifactory/libs-releases
+        - name: ARTIFACT_DIR
+        - name: HTTP_PROXY
+          value: http://egress-http-proxy:8080
+        - name: HTTPS_PROXY
+          value: http://egress-http-proxy:8080
+        - name: http_proxy
+          value: http://egress-http-proxy:8080
+        - name: https_proxy
+          value: http://egress-http-proxy:8080
+        - name: HTTP_PROXY_HOST
+          value: egress-http-proxy
+        - name: HTTP_PROXY_PORT
+          value: "8080"
+        forcePull: true
+        from:
+          kind: ImageStreamTag
+          name: jboss-webserver30-tomcat8-openshift:1.3
+          namespace: openshift
+      type: Source
+    triggers:
+    - github:
+        secret: abqttuIB
+      type: GitHub
+    - generic:
+        secret: hWQ5MG4h
+      type: Generic
+    - imageChange: {}
+      type: ImageChange
+    - type: ConfigChange
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    labels:
+      build: spring-boot-web-jsp
+    name: spring-boot-web-jsp
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: spring-boot-web-jsp:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      dockerStrategy:
+        from:
+          kind: ImageStreamTag
+          name: amazoncorretto:8
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - github:
+        secret: 7-VYPONtJiklkdMviYg7
+      type: GitHub
+    - generic:
+        secret: aJPCfBOXuG3T6R3vF6Rg
+      type: Generic
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    labels:
+      build: templatebuild
+    name: templatebuild
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: templatebuild:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      dockerStrategy:
+        from:
+          kind: ImageStreamTag
+          name: tomcat:8.0
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - github:
+        secret: wa8um9webR9p1lSFS3q9
+      type: GitHub
+    - generic:
+        secret: 15F-KCJaIaoP_C6dmU93
+      type: Generic
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: pc-cpq-template
+      openshift.io/build.number: "36"
+      openshift.io/build.pod-name: pc-cpq-template-36-build
+    creationTimestamp: null
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      buildconfig: pc-cpq-template
+      openshift.io/build-config.name: pc-cpq-template
+      openshift.io/build.start-policy: Serial
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template-36
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: pc-cpq-template
+      uid: f41f7790-d6af-11e8-b034-02a300ce655d
+  spec:
+    nodeSelector: null
+    output:
+      pushSecret:
+        name: builder-dockercfg-tr762
+      to:
+        kind: ImageStreamTag
+        name: pc-cpq-template:latest
+    postCommit: {}
+    resources: {}
+    revision:
+      git:
+        author:
+          email: kumar.ashish.external@axa.be
+          name: Ashish Kumar
+        commit: 74fa747c20414b8662a70098328c8e5fa6f19bd7
+        committer:
+          email: noreply@cm-ghe-elb01-927763692.eu-central-1.elb.amazonaws.com
+          name: GitHub Enterprise
+        message: sonarqube bug fix
+      type: Git
+    serviceAccount: builder
+    source:
+      git:
+        ref: development
+        uri: git@github.axa.com:axa-be-esalesandservicing/be.axa.pc.cpq.api.template.git
+      sourceSecret:
+        name: my-secret-name
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: MAVEN_MIRROR_URL
+          value: http://10.243.145.63:7000/artifactory/libs-releases
+        - name: ARTIFACT_DIR
+        - name: HTTP_PROXY
+          value: http://egress-http-proxy:8080
+        - name: HTTPS_PROXY
+          value: http://egress-http-proxy:8080
+        - name: http_proxy
+          value: http://egress-http-proxy:8080
+        - name: https_proxy
+          value: http://egress-http-proxy:8080
+        - name: HTTP_PROXY_HOST
+          value: egress-http-proxy
+        - name: HTTP_PROXY_PORT
+          value: "8080"
+        forcePull: true
+        from:
+          kind: DockerImage
+          name: registry.access.redhat.com/jboss-webserver-3/webserver30-tomcat8-openshift@sha256:0089883f8e4387618946cd24378a447b8cf7e5dfaa146b94acab27fc5e170a14
+      type: Source
+    triggeredBy:
+    - message: Manually triggered
+  status:
+    config:
+      name: pc-cpq-template
+    logSnippet: |-
+      [ERROR] For more information about the errors and possible solutions, please read the following articles:
+      [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/ProjectBuildingException
+      [ERROR] [Help 2] http://cwiki.apache.org/confluence/display/MAVEN/UnresolvableModelException
+      Aborting due to error code 1 from Maven build
+      error: build error: non-zero (13) exit code from registry....83f8e4387618946cd24378a447b8cf7e5dfaa146b94acab27fc5e170a14
+    message: Assemble script failed.
+    output: {}
+    outputDockerImageReference: 172.30.37.22:5000/pccorp-esales-dev-axa-be/pc-cpq-template:latest
+    phase: New
+    reason: AssembleFailed
+    stages:
+    - durationMilliseconds: 987
+      name: FetchInputs
+      startTime: 2019-02-05T15:11:03Z
+      steps:
+      - durationMilliseconds: 987
+        name: FetchGitSource
+        startTime: 2019-02-05T15:11:03Z
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.number: "1"
+      openshift.io/build.pod-name: spring-boot-web-jsp-1-build
+    creationTimestamp: null
+    labels:
+      build: spring-boot-web-jsp
+      buildconfig: spring-boot-web-jsp
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.start-policy: Serial
+    name: spring-boot-web-jsp-1
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: spring-boot-web-jsp
+      uid: dca2a601-29e5-11e9-b20e-02d7906e6061
+  spec:
+    nodeSelector: null
+    output:
+      pushSecret:
+        name: builder-dockercfg-tr762
+      to:
+        kind: ImageStreamTag
+        name: spring-boot-web-jsp:latest
+    postCommit: {}
+    resources: {}
+    revision:
+      git:
+        author:
+          email: guy.chauliac@gmail.com
+          name: Guy Chauliac
+        commit: 4de7fd332209bda78c63507b1c9c8535ebf97cc6
+        committer:
+          email: noreply@github.com
+          name: GitHub
+        message: Update readme.md
+      type: Git
+    serviceAccount: builder
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799
+      type: Docker
+    triggeredBy: []
+  status:
+    config:
+      name: spring-boot-web-jsp
+    output:
+      to:
+        imageDigest: sha256:2c1f32c9fa7f4dfabd4417f19db32d161235812340d3ba2d969b70c48677bda7
+    outputDockerImageReference: 172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest
+    phase: New
+    stages:
+    - durationMilliseconds: 20706
+      name: PullImages
+      startTime: 2019-02-06T08:15:06Z
+      steps:
+      - durationMilliseconds: 20706
+        name: PullBaseImage
+        startTime: 2019-02-06T08:15:06Z
+    - durationMilliseconds: 9977
+      name: Build
+      startTime: 2019-02-06T08:15:27Z
+      steps:
+      - durationMilliseconds: 9977
+        name: DockerBuild
+        startTime: 2019-02-06T08:15:27Z
+    - durationMilliseconds: 30258
+      name: PushImage
+      startTime: 2019-02-06T08:15:37Z
+      steps:
+      - durationMilliseconds: 30258
+        name: PushDockerImage
+        startTime: 2019-02-06T08:15:37Z
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.number: "2"
+      openshift.io/build.pod-name: spring-boot-web-jsp-2-build
+    creationTimestamp: null
+    labels:
+      build: spring-boot-web-jsp
+      buildconfig: spring-boot-web-jsp
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.start-policy: Serial
+    name: spring-boot-web-jsp-2
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: spring-boot-web-jsp
+      uid: dca2a601-29e5-11e9-b20e-02d7906e6061
+  spec:
+    nodeSelector: null
+    output:
+      pushSecret:
+        name: builder-dockercfg-tr762
+      to:
+        kind: ImageStreamTag
+        name: spring-boot-web-jsp:latest
+    postCommit: {}
+    resources: {}
+    revision:
+      git:
+        author:
+          email: guy.chauliac@gmail.com
+          name: Guy Chauliac
+        commit: 4de7fd332209bda78c63507b1c9c8535ebf97cc6
+        committer:
+          email: noreply@github.com
+          name: GitHub
+        message: Update readme.md
+      type: Git
+    serviceAccount: builder
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799
+      type: Docker
+    triggeredBy: []
+  status:
+    config:
+      name: spring-boot-web-jsp
+    message: Failed to fetch the input source.
+    output: {}
+    outputDockerImageReference: 172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest
+    phase: New
+    reason: FetchSourceFailed
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.number: "3"
+      openshift.io/build.pod-name: spring-boot-web-jsp-3-build
+    creationTimestamp: null
+    labels:
+      build: spring-boot-web-jsp
+      buildconfig: spring-boot-web-jsp
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.start-policy: Serial
+    name: spring-boot-web-jsp-3
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: spring-boot-web-jsp
+      uid: dca2a601-29e5-11e9-b20e-02d7906e6061
+  spec:
+    nodeSelector: null
+    output:
+      pushSecret:
+        name: builder-dockercfg-tr762
+      to:
+        kind: ImageStreamTag
+        name: spring-boot-web-jsp:latest
+    postCommit: {}
+    resources: {}
+    revision:
+      git:
+        author:
+          email: guy.chauliac@gmail.com
+          name: Guy Chauliac
+        commit: 4de7fd332209bda78c63507b1c9c8535ebf97cc6
+        committer:
+          email: noreply@github.com
+          name: GitHub
+        message: Update readme.md
+      type: Git
+    serviceAccount: builder
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799
+      type: Docker
+    triggeredBy: []
+  status:
+    config:
+      name: spring-boot-web-jsp
+    output:
+      to:
+        imageDigest: sha256:844f0118940e92f9e061f229c28013a2f31fcb0c13b7c50921faa528d6244a06
+    outputDockerImageReference: 172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest
+    phase: New
+    stages:
+    - durationMilliseconds: 22888
+      name: PullImages
+      startTime: 2019-02-06T08:42:26Z
+      steps:
+      - durationMilliseconds: 22888
+        name: PullBaseImage
+        startTime: 2019-02-06T08:42:26Z
+    - durationMilliseconds: 30688
+      name: Build
+      startTime: 2019-02-06T08:42:49Z
+      steps:
+      - durationMilliseconds: 30688
+        name: DockerBuild
+        startTime: 2019-02-06T08:42:49Z
+    - durationMilliseconds: 5071
+      name: PushImage
+      startTime: 2019-02-06T08:43:20Z
+      steps:
+      - durationMilliseconds: 5071
+        name: PushDockerImage
+        startTime: 2019-02-06T08:43:20Z
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.number: "4"
+    creationTimestamp: null
+    labels:
+      build: spring-boot-web-jsp
+      buildconfig: spring-boot-web-jsp
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.start-policy: Serial
+    name: spring-boot-web-jsp-4
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: spring-boot-web-jsp
+      uid: dca2a601-29e5-11e9-b20e-02d7906e6061
+  spec:
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: spring-boot-web-jsp:latest
+    postCommit: {}
+    resources: {}
+    revision:
+      git:
+        author:
+          email: guy.chauliac@gmail.com
+          name: Guy Chauliac
+        commit: 4de7fd332209bda78c63507b1c9c8535ebf97cc6
+        committer:
+          email: noreply@github.com
+          name: GitHub
+        message: Update readme.md
+      type: Git
+    serviceAccount: builder
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799
+      type: Docker
+    triggeredBy: []
+  status:
+    cancelled: true
+    config:
+      name: spring-boot-web-jsp
+    message: The build was cancelled by the user.
+    output: {}
+    phase: New
+    reason: CancelledBuild
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+      openshift.io/image.dockerRepositoryCheck: 2019-02-06T08:04:44Z
+    creationTimestamp: null
+    generation: 2
+    labels:
+      build: spring-boot-web-jsp
+    name: amazoncorretto
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations:
+        openshift.io/imported-from: amazoncorretto:8
+      from:
+        kind: DockerImage
+        name: 172.30.37.22:5000/pccorp-esales-dev-axa-be/amazoncorretto:8
+      generation: 2
+      importPolicy: {}
+      name: "8"
+      referencePolicy:
+        type: Source
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    generation: 1
+    labels:
+      build: dockerbuild
+    name: dockerbuild
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc.cpq.template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc.cpq.template
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    generation: 1
+    labels:
+      build: spring-boot-web-jsp
+    name: spring-boot-web-jsp
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: 172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: ""
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    generation: 1
+    labels:
+      build: templatebuild
+    name: templatebuild
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+      openshift.io/image.dockerRepositoryCheck: 2019-02-05T15:34:25Z
+    creationTimestamp: null
+    generation: 2
+    labels:
+      build: dockerbuild
+    name: tomcat
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations:
+        openshift.io/imported-from: tomcat:8.0
+      from:
+        kind: DockerImage
+        name: 172.30.37.22:5000/pccorp-esales-dev-axa-be/tomcat:8.0
+      generation: 2
+      importPolicy: {}
+      name: "8.0"
+      referencePolicy:
+        type: Source
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "false"
+    creationTimestamp: null
+    labels:
+      app: openpaas-jenkins-deploy
+      created-by: template
+      router: internal
+      template: openpaas-jenkins-deploy
+    name: openpaas-jenkins-deploy
+  spec:
+    host: be.axa.pccorp.jenkins.pink.eu-central-1.aws.openpaas.axa-cloud.com
+    port:
+      targetPort: 8080-tcp
+    tls:
+      termination: edge
+    to:
+      kind: Service
+      name: openpaas-jenkins-deploy
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress:
+    - conditions:
+      - lastTransitionTime: 2018-11-07T20:45:58Z
+        status: "True"
+        type: Admitted
+      host: be.axa.pccorp.jenkins.pink.eu-central-1.aws.openpaas.axa-cloud.com
+      routerName: axa-be-dev-internal
+      wildcardPolicy: None
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      description: Route for application's http service.
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template
+  spec:
+    host: pc-cpq-template-pccorp-esales-dev-axa-be.router.default.svc.cluster.local
+    to:
+      kind: Service
+      name: pc-cpq-template
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress: null
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      description: Route for application's https service.
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: secure-pc-cpq-template
+  spec:
+    host: secure-pc-cpq-template-pccorp-esales-dev-axa-be.router.default.svc.cluster.local
+    tls:
+      termination: passthrough
+    to:
+      kind: Service
+      name: secure-pc-cpq-template
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress: null
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubernetes.io/limit-ranger: 'LimitRanger plugin set: cpu, memory request for
+        container sti-build; cpu, memory limit for container sti-build; cpu, memory
+        request for init container git-clone; cpu, memory limit for init container
+        git-clone; cpu, memory request for init container manage-dockerfile; cpu,
+        memory limit for init container manage-dockerfile'
+      openshift.io/build.name: pc-cpq-template-36
+      openshift.io/scc: privileged
+    creationTimestamp: null
+    labels:
+      openshift.io/build.name: pc-cpq-template-36
+    name: pc-cpq-template-36-build
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: Build
+      name: pc-cpq-template-36
+      uid: 38cf328f-2958-11e9-b20e-02d7906e6061
+  spec:
+    containers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-sti-build
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"pc-cpq-template-36","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/build.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/builds/pc-cpq-template-36","uid":"38cf328f-2958-11e9-b20e-02d7906e6061","resourceVersion":"1549448409","creationTimestamp":"2019-02-05T15:10:49Z","labels":{"app":"jws30-tomcat8-mongodb-persistent-s2i","application":"pc-cpq-template","buildconfig":"pc-cpq-template","openshift.io/build-config.name":"pc-cpq-template","openshift.io/build.start-policy":"Serial","template":"jws30-tomcat8-mongodb-persistent-s2i","xpaas":"1.4.0"},"annotations":{"openshift.io/build-config.name":"pc-cpq-template","openshift.io/build.number":"36"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"pc-cpq-template","uid":"f41f7790-d6af-11e8-b034-02a300ce655d","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Git","git":{"uri":"git@github.axa.com:axa-be-esalesandservicing/be.axa.pc.cpq.api.template.git","ref":"development"},"sourceSecret":{"name":"my-secret-name"}},"strategy":{"type":"Source","sourceStrategy":{"from":{"kind":"DockerImage","name":"registry.access.redhat.com/jboss-webserver-3/webserver30-tomcat8-openshift@sha256:0089883f8e4387618946cd24378a447b8cf7e5dfaa146b94acab27fc5e170a14"},"env":[{"name":"MAVEN_MIRROR_URL","value":"http://10.243.145.63:7000/artifactory/libs-releases"},{"name":"ARTIFACT_DIR"},{"name":"HTTP_PROXY","value":"http://egress-http-proxy:8080"},{"name":"HTTPS_PROXY","value":"http://egress-http-proxy:8080"},{"name":"http_proxy","value":"http://egress-http-proxy:8080"},{"name":"https_proxy","value":"http://egress-http-proxy:8080"},{"name":"HTTP_PROXY_HOST","value":"egress-http-proxy"},{"name":"HTTP_PROXY_PORT","value":"8080"}],"forcePull":true}},"output":{"to":{"kind":"DockerImage","name":"172.30.37.22:5000/pccorp-esales-dev-axa-be/pc-cpq-template:latest"},"pushSecret":{"name":"builder-dockercfg-tr762"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[{"message":"Manually triggered"}]},"status":{"phase":"New","outputDockerImageReference":"172.30.37.22:5000/pccorp-esales-dev-axa-be/pc-cpq-template:latest","config":{"kind":"BuildConfig","namespace":"pccorp-esales-dev-axa-be","name":"pc-cpq-template"},"output":{}}}
+      - name: SOURCE_REPOSITORY
+        value: git@github.axa.com:axa-be-esalesandservicing/be.axa.pc.cpq.api.template.git
+      - name: SOURCE_URI
+        value: git@github.axa.com:axa-be-esalesandservicing/be.axa.pc.cpq.api.template.git
+      - name: SOURCE_REF
+        value: development
+      - name: ORIGIN_VERSION
+        value: v3.7.72
+      - name: ALLOWED_UIDS
+        value: 1-
+      - name: DROP_CAPS
+        value: KILL,MKNOD,SETGID,SETUID
+      - name: PUSH_DOCKERCFG_PATH
+        value: /var/run/secrets/openshift.io/push
+      image: openshift3/ose-sti-builder:v3.7.72
+      imagePullPolicy: IfNotPresent
+      name: sti-build
+      resources:
+        limits:
+          cpu: 93m
+          memory: 256Mi
+        requests:
+          cpu: 61m
+          memory: 256Mi
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/docker.sock
+        name: docker-socket
+      - mountPath: /var/run/crio.sock
+        name: crio-socket
+      - mountPath: /var/run/secrets/openshift.io/push
+        name: builder-dockercfg-tr762-push
+        readOnly: true
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-rvz7v
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    imagePullSecrets:
+    - name: builder-dockercfg-tr762
+    initContainers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-git-clone
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"pc-cpq-template-36","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/build.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/builds/pc-cpq-template-36","uid":"38cf328f-2958-11e9-b20e-02d7906e6061","resourceVersion":"1549448409","creationTimestamp":"2019-02-05T15:10:49Z","labels":{"app":"jws30-tomcat8-mongodb-persistent-s2i","application":"pc-cpq-template","buildconfig":"pc-cpq-template","openshift.io/build-config.name":"pc-cpq-template","openshift.io/build.start-policy":"Serial","template":"jws30-tomcat8-mongodb-persistent-s2i","xpaas":"1.4.0"},"annotations":{"openshift.io/build-config.name":"pc-cpq-template","openshift.io/build.number":"36"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"pc-cpq-template","uid":"f41f7790-d6af-11e8-b034-02a300ce655d","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Git","git":{"uri":"git@github.axa.com:axa-be-esalesandservicing/be.axa.pc.cpq.api.template.git","ref":"development"},"sourceSecret":{"name":"my-secret-name"}},"strategy":{"type":"Source","sourceStrategy":{"from":{"kind":"DockerImage","name":"registry.access.redhat.com/jboss-webserver-3/webserver30-tomcat8-openshift@sha256:0089883f8e4387618946cd24378a447b8cf7e5dfaa146b94acab27fc5e170a14"},"env":[{"name":"MAVEN_MIRROR_URL","value":"http://10.243.145.63:7000/artifactory/libs-releases"},{"name":"ARTIFACT_DIR"},{"name":"HTTP_PROXY","value":"http://egress-http-proxy:8080"},{"name":"HTTPS_PROXY","value":"http://egress-http-proxy:8080"},{"name":"http_proxy","value":"http://egress-http-proxy:8080"},{"name":"https_proxy","value":"http://egress-http-proxy:8080"},{"name":"HTTP_PROXY_HOST","value":"egress-http-proxy"},{"name":"HTTP_PROXY_PORT","value":"8080"}],"forcePull":true}},"output":{"to":{"kind":"DockerImage","name":"172.30.37.22:5000/pccorp-esales-dev-axa-be/pc-cpq-template:latest"},"pushSecret":{"name":"builder-dockercfg-tr762"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[{"message":"Manually triggered"}]},"status":{"phase":"New","outputDockerImageReference":"172.30.37.22:5000/pccorp-esales-dev-axa-be/pc-cpq-template:latest","config":{"kind":"BuildConfig","namespace":"pccorp-esales-dev-axa-be","name":"pc-cpq-template"},"output":{}}}
+      - name: SOURCE_REPOSITORY
+        value: git@github.axa.com:axa-be-esalesandservicing/be.axa.pc.cpq.api.template.git
+      - name: SOURCE_URI
+        value: git@github.axa.com:axa-be-esalesandservicing/be.axa.pc.cpq.api.template.git
+      - name: SOURCE_REF
+        value: development
+      - name: ORIGIN_VERSION
+        value: v3.7.72
+      - name: ALLOWED_UIDS
+        value: 1-
+      - name: DROP_CAPS
+        value: KILL,MKNOD,SETGID,SETUID
+      - name: SOURCE_SECRET_PATH
+        value: /var/run/secrets/openshift.io/source
+      image: openshift3/ose-sti-builder:v3.7.72
+      imagePullPolicy: IfNotPresent
+      name: git-clone
+      resources:
+        limits:
+          cpu: 93m
+          memory: 256Mi
+        requests:
+          cpu: 61m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/openshift.io/source
+        name: my-secret-name-source
+        readOnly: true
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-rvz7v
+        readOnly: true
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-manage-dockerfile
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"pc-cpq-template-36","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/build.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/builds/pc-cpq-template-36","uid":"38cf328f-2958-11e9-b20e-02d7906e6061","resourceVersion":"1549448409","creationTimestamp":"2019-02-05T15:10:49Z","labels":{"app":"jws30-tomcat8-mongodb-persistent-s2i","application":"pc-cpq-template","buildconfig":"pc-cpq-template","openshift.io/build-config.name":"pc-cpq-template","openshift.io/build.start-policy":"Serial","template":"jws30-tomcat8-mongodb-persistent-s2i","xpaas":"1.4.0"},"annotations":{"openshift.io/build-config.name":"pc-cpq-template","openshift.io/build.number":"36"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"pc-cpq-template","uid":"f41f7790-d6af-11e8-b034-02a300ce655d","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Git","git":{"uri":"git@github.axa.com:axa-be-esalesandservicing/be.axa.pc.cpq.api.template.git","ref":"development"},"sourceSecret":{"name":"my-secret-name"}},"strategy":{"type":"Source","sourceStrategy":{"from":{"kind":"DockerImage","name":"registry.access.redhat.com/jboss-webserver-3/webserver30-tomcat8-openshift@sha256:0089883f8e4387618946cd24378a447b8cf7e5dfaa146b94acab27fc5e170a14"},"env":[{"name":"MAVEN_MIRROR_URL","value":"http://10.243.145.63:7000/artifactory/libs-releases"},{"name":"ARTIFACT_DIR"},{"name":"HTTP_PROXY","value":"http://egress-http-proxy:8080"},{"name":"HTTPS_PROXY","value":"http://egress-http-proxy:8080"},{"name":"http_proxy","value":"http://egress-http-proxy:8080"},{"name":"https_proxy","value":"http://egress-http-proxy:8080"},{"name":"HTTP_PROXY_HOST","value":"egress-http-proxy"},{"name":"HTTP_PROXY_PORT","value":"8080"}],"forcePull":true}},"output":{"to":{"kind":"DockerImage","name":"172.30.37.22:5000/pccorp-esales-dev-axa-be/pc-cpq-template:latest"},"pushSecret":{"name":"builder-dockercfg-tr762"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[{"message":"Manually triggered"}]},"status":{"phase":"New","outputDockerImageReference":"172.30.37.22:5000/pccorp-esales-dev-axa-be/pc-cpq-template:latest","config":{"kind":"BuildConfig","namespace":"pccorp-esales-dev-axa-be","name":"pc-cpq-template"},"output":{}}}
+      - name: SOURCE_REPOSITORY
+        value: git@github.axa.com:axa-be-esalesandservicing/be.axa.pc.cpq.api.template.git
+      - name: SOURCE_URI
+        value: git@github.axa.com:axa-be-esalesandservicing/be.axa.pc.cpq.api.template.git
+      - name: SOURCE_REF
+        value: development
+      - name: ORIGIN_VERSION
+        value: v3.7.72
+      - name: ALLOWED_UIDS
+        value: 1-
+      - name: DROP_CAPS
+        value: KILL,MKNOD,SETGID,SETUID
+      image: openshift3/ose-sti-builder:v3.7.72
+      imagePullPolicy: IfNotPresent
+      name: manage-dockerfile
+      resources:
+        limits:
+          cpu: 93m
+          memory: 256Mi
+        requests:
+          cpu: 61m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-rvz7v
+        readOnly: true
+    nodeName: ip-10-135-241-118.eu-central-1.compute.internal
+    nodeSelector:
+      axa-cloud.com/application-role: production
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: builder
+    serviceAccountName: builder
+    terminationGracePeriodSeconds: 30
+    volumes:
+    - emptyDir: {}
+      name: buildworkdir
+    - name: my-secret-name-source
+      secret:
+        defaultMode: 384
+        secretName: my-secret-name
+    - hostPath:
+        path: /var/run/docker.sock
+        type: ""
+      name: docker-socket
+    - hostPath:
+        path: /var/run/crio.sock
+        type: ""
+      name: crio-socket
+    - name: builder-dockercfg-tr762-push
+      secret:
+        defaultMode: 384
+        secretName: builder-dockercfg-tr762
+    - name: builder-token-rvz7v
+      secret:
+        defaultMode: 420
+        secretName: builder-token-rvz7v
+  status:
+    phase: Pending
+    qosClass: Burstable
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubernetes.io/limit-ranger: 'LimitRanger plugin set: cpu, memory request for
+        container docker-build; cpu, memory limit for container docker-build; cpu,
+        memory request for init container git-clone; cpu, memory limit for init container
+        git-clone; cpu, memory request for init container manage-dockerfile; cpu,
+        memory limit for init container manage-dockerfile'
+      openshift.io/build.name: spring-boot-web-jsp-1
+      openshift.io/scc: privileged
+    creationTimestamp: null
+    labels:
+      openshift.io/build.name: spring-boot-web-jsp-1
+    name: spring-boot-web-jsp-1-build
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: Build
+      name: spring-boot-web-jsp-1
+      uid: 3ffb678c-29e7-11e9-a015-02f84cfb94e5
+  spec:
+    containers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-docker-build
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"spring-boot-web-jsp-1","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/build.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/builds/spring-boot-web-jsp-1","uid":"3ffb678c-29e7-11e9-a015-02f84cfb94e5","resourceVersion":"1551944681","creationTimestamp":"2019-02-06T08:14:39Z","labels":{"build":"spring-boot-web-jsp","buildconfig":"spring-boot-web-jsp","openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"spring-boot-web-jsp","uid":"dca2a601-29e5-11e9-b20e-02d7906e6061","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Binary","binary":{}},"revision":{"type":"Git","git":{"commit":"4de7fd332209bda78c63507b1c9c8535ebf97cc6","author":{"name":"Guy Chauliac","email":"guy.chauliac@gmail.com"},"committer":{"name":"GitHub","email":"noreply@github.com"},"message":"Update readme.md"}},"strategy":{"type":"Docker","dockerStrategy":{"from":{"kind":"DockerImage","name":"amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799"}}},"output":{"to":{"kind":"DockerImage","name":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest"},"pushSecret":{"name":"builder-dockercfg-tr762"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[]},"status":{"phase":"New","outputDockerImageReference":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest","config":{"kind":"BuildConfig","namespace":"pccorp-esales-dev-axa-be","name":"spring-boot-web-jsp"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.72
+      - name: PUSH_DOCKERCFG_PATH
+        value: /var/run/secrets/openshift.io/push
+      image: openshift3/ose-docker-builder:v3.7.72
+      imagePullPolicy: IfNotPresent
+      name: docker-build
+      resources:
+        limits:
+          cpu: 93m
+          memory: 256Mi
+        requests:
+          cpu: 61m
+          memory: 256Mi
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/docker.sock
+        name: docker-socket
+      - mountPath: /var/run/crio.sock
+        name: crio-socket
+      - mountPath: /var/run/secrets/openshift.io/push
+        name: builder-dockercfg-tr762-push
+        readOnly: true
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-rvz7v
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    imagePullSecrets:
+    - name: builder-dockercfg-tr762
+    initContainers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-git-clone
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"spring-boot-web-jsp-1","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/build.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/builds/spring-boot-web-jsp-1","uid":"3ffb678c-29e7-11e9-a015-02f84cfb94e5","resourceVersion":"1551944681","creationTimestamp":"2019-02-06T08:14:39Z","labels":{"build":"spring-boot-web-jsp","buildconfig":"spring-boot-web-jsp","openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"spring-boot-web-jsp","uid":"dca2a601-29e5-11e9-b20e-02d7906e6061","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Binary","binary":{}},"revision":{"type":"Git","git":{"commit":"4de7fd332209bda78c63507b1c9c8535ebf97cc6","author":{"name":"Guy Chauliac","email":"guy.chauliac@gmail.com"},"committer":{"name":"GitHub","email":"noreply@github.com"},"message":"Update readme.md"}},"strategy":{"type":"Docker","dockerStrategy":{"from":{"kind":"DockerImage","name":"amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799"}}},"output":{"to":{"kind":"DockerImage","name":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest"},"pushSecret":{"name":"builder-dockercfg-tr762"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[]},"status":{"phase":"New","outputDockerImageReference":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest","config":{"kind":"BuildConfig","namespace":"pccorp-esales-dev-axa-be","name":"spring-boot-web-jsp"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.72
+      image: openshift3/ose-docker-builder:v3.7.72
+      imagePullPolicy: IfNotPresent
+      name: git-clone
+      resources:
+        limits:
+          cpu: 93m
+          memory: 256Mi
+        requests:
+          cpu: 61m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      stdin: true
+      stdinOnce: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-rvz7v
+        readOnly: true
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-manage-dockerfile
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"spring-boot-web-jsp-1","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/build.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/builds/spring-boot-web-jsp-1","uid":"3ffb678c-29e7-11e9-a015-02f84cfb94e5","resourceVersion":"1551944681","creationTimestamp":"2019-02-06T08:14:39Z","labels":{"build":"spring-boot-web-jsp","buildconfig":"spring-boot-web-jsp","openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.number":"1"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"spring-boot-web-jsp","uid":"dca2a601-29e5-11e9-b20e-02d7906e6061","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Binary","binary":{}},"revision":{"type":"Git","git":{"commit":"4de7fd332209bda78c63507b1c9c8535ebf97cc6","author":{"name":"Guy Chauliac","email":"guy.chauliac@gmail.com"},"committer":{"name":"GitHub","email":"noreply@github.com"},"message":"Update readme.md"}},"strategy":{"type":"Docker","dockerStrategy":{"from":{"kind":"DockerImage","name":"amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799"}}},"output":{"to":{"kind":"DockerImage","name":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest"},"pushSecret":{"name":"builder-dockercfg-tr762"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[]},"status":{"phase":"New","outputDockerImageReference":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest","config":{"kind":"BuildConfig","namespace":"pccorp-esales-dev-axa-be","name":"spring-boot-web-jsp"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.72
+      image: openshift3/ose-docker-builder:v3.7.72
+      imagePullPolicy: IfNotPresent
+      name: manage-dockerfile
+      resources:
+        limits:
+          cpu: 93m
+          memory: 256Mi
+        requests:
+          cpu: 61m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-rvz7v
+        readOnly: true
+    nodeName: ip-10-135-240-27.eu-central-1.compute.internal
+    nodeSelector:
+      axa-cloud.com/application-role: production
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: builder
+    serviceAccountName: builder
+    terminationGracePeriodSeconds: 30
+    volumes:
+    - emptyDir: {}
+      name: buildworkdir
+    - hostPath:
+        path: /var/run/docker.sock
+        type: ""
+      name: docker-socket
+    - hostPath:
+        path: /var/run/crio.sock
+        type: ""
+      name: crio-socket
+    - name: builder-dockercfg-tr762-push
+      secret:
+        defaultMode: 384
+        secretName: builder-dockercfg-tr762
+    - name: builder-token-rvz7v
+      secret:
+        defaultMode: 420
+        secretName: builder-token-rvz7v
+  status:
+    phase: Pending
+    qosClass: Burstable
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubernetes.io/created-by: |
+        {"kind":"SerializedReference","apiVersion":"v1","reference":{"kind":"ReplicationController","namespace":"pccorp-esales-dev-axa-be","name":"spring-boot-web-jsp-2","uid":"4481e7ee-29eb-11e9-b20e-02d7906e6061","apiVersion":"v1","resourceVersion":"1552014847"}}
+      kubernetes.io/limit-ranger: 'LimitRanger plugin set: cpu, memory request for
+        container spring-boot-web-jsp; cpu, memory limit for container spring-boot-web-jsp'
+      openshift.io/deployment-config.latest-version: "2"
+      openshift.io/deployment-config.name: spring-boot-web-jsp
+      openshift.io/deployment.name: spring-boot-web-jsp-2
+      openshift.io/generated-by: OpenShiftNewApp
+      openshift.io/scc: restricted
+    creationTimestamp: null
+    generateName: spring-boot-web-jsp-2-
+    labels:
+      app: spring-boot-web-jsp
+      deployment: spring-boot-web-jsp-2
+      deploymentconfig: spring-boot-web-jsp
+    ownerReferences:
+    - apiVersion: v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicationController
+      name: spring-boot-web-jsp-2
+      uid: 4481e7ee-29eb-11e9-b20e-02d7906e6061
+  spec:
+    containers:
+    - image: 172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp@sha256:844f0118940e92f9e061f229c28013a2f31fcb0c13b7c50921faa528d6244a06
+      imagePullPolicy: Always
+      name: spring-boot-web-jsp
+      resources:
+        limits:
+          cpu: 93m
+          memory: 256Mi
+        requests:
+          cpu: 61m
+          memory: 256Mi
+      securityContext:
+        capabilities:
+          drop:
+          - KILL
+          - MKNOD
+          - SETGID
+          - SETUID
+        privileged: false
+        runAsUser: 1011110000
+        seLinuxOptions:
+          level: s0:c105,c95
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-lnn4p
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    imagePullSecrets:
+    - name: default-dockercfg-v2lwv
+    nodeName: ip-10-135-242-89.eu-central-1.compute.internal
+    nodeSelector:
+      axa-cloud.com/application-role: production
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1011110000
+      seLinuxOptions:
+        level: s0:c105,c95
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    volumes:
+    - name: default-token-lnn4p
+      secret:
+        defaultMode: 420
+        secretName: default-token-lnn4p
+  status:
+    phase: Pending
+    qosClass: Burstable
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubernetes.io/limit-ranger: 'LimitRanger plugin set: cpu, memory request for
+        container docker-build; cpu, memory limit for container docker-build; cpu,
+        memory request for init container git-clone; cpu, memory limit for init container
+        git-clone; cpu, memory request for init container manage-dockerfile; cpu,
+        memory limit for init container manage-dockerfile'
+      openshift.io/build.name: spring-boot-web-jsp-2
+      openshift.io/scc: privileged
+    creationTimestamp: null
+    labels:
+      openshift.io/build.name: spring-boot-web-jsp-2
+    name: spring-boot-web-jsp-2-build
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: Build
+      name: spring-boot-web-jsp-2
+      uid: 381f3de2-29e9-11e9-b20e-02d7906e6061
+  spec:
+    containers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-docker-build
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"spring-boot-web-jsp-2","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/build.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/builds/spring-boot-web-jsp-2","uid":"381f3de2-29e9-11e9-b20e-02d7906e6061","resourceVersion":"1551978730","creationTimestamp":"2019-02-06T08:28:45Z","labels":{"build":"spring-boot-web-jsp","buildconfig":"spring-boot-web-jsp","openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.number":"2"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"spring-boot-web-jsp","uid":"dca2a601-29e5-11e9-b20e-02d7906e6061","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Binary","binary":{}},"revision":{"type":"Git","git":{"commit":"4de7fd332209bda78c63507b1c9c8535ebf97cc6","author":{"name":"Guy Chauliac","email":"guy.chauliac@gmail.com"},"committer":{"name":"GitHub","email":"noreply@github.com"},"message":"Update readme.md"}},"strategy":{"type":"Docker","dockerStrategy":{"from":{"kind":"DockerImage","name":"amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799"}}},"output":{"to":{"kind":"DockerImage","name":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest"},"pushSecret":{"name":"builder-dockercfg-tr762"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[]},"status":{"phase":"New","outputDockerImageReference":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest","config":{"kind":"BuildConfig","namespace":"pccorp-esales-dev-axa-be","name":"spring-boot-web-jsp"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.72
+      - name: PUSH_DOCKERCFG_PATH
+        value: /var/run/secrets/openshift.io/push
+      image: openshift3/ose-docker-builder:v3.7.72
+      imagePullPolicy: IfNotPresent
+      name: docker-build
+      resources:
+        limits:
+          cpu: 93m
+          memory: 256Mi
+        requests:
+          cpu: 61m
+          memory: 256Mi
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/docker.sock
+        name: docker-socket
+      - mountPath: /var/run/crio.sock
+        name: crio-socket
+      - mountPath: /var/run/secrets/openshift.io/push
+        name: builder-dockercfg-tr762-push
+        readOnly: true
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-rvz7v
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    imagePullSecrets:
+    - name: builder-dockercfg-tr762
+    initContainers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-git-clone
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"spring-boot-web-jsp-2","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/build.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/builds/spring-boot-web-jsp-2","uid":"381f3de2-29e9-11e9-b20e-02d7906e6061","resourceVersion":"1551978730","creationTimestamp":"2019-02-06T08:28:45Z","labels":{"build":"spring-boot-web-jsp","buildconfig":"spring-boot-web-jsp","openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.number":"2"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"spring-boot-web-jsp","uid":"dca2a601-29e5-11e9-b20e-02d7906e6061","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Binary","binary":{}},"revision":{"type":"Git","git":{"commit":"4de7fd332209bda78c63507b1c9c8535ebf97cc6","author":{"name":"Guy Chauliac","email":"guy.chauliac@gmail.com"},"committer":{"name":"GitHub","email":"noreply@github.com"},"message":"Update readme.md"}},"strategy":{"type":"Docker","dockerStrategy":{"from":{"kind":"DockerImage","name":"amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799"}}},"output":{"to":{"kind":"DockerImage","name":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest"},"pushSecret":{"name":"builder-dockercfg-tr762"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[]},"status":{"phase":"New","outputDockerImageReference":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest","config":{"kind":"BuildConfig","namespace":"pccorp-esales-dev-axa-be","name":"spring-boot-web-jsp"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.72
+      image: openshift3/ose-docker-builder:v3.7.72
+      imagePullPolicy: IfNotPresent
+      name: git-clone
+      resources:
+        limits:
+          cpu: 93m
+          memory: 256Mi
+        requests:
+          cpu: 61m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      stdin: true
+      stdinOnce: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-rvz7v
+        readOnly: true
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-manage-dockerfile
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"spring-boot-web-jsp-2","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/build.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/builds/spring-boot-web-jsp-2","uid":"381f3de2-29e9-11e9-b20e-02d7906e6061","resourceVersion":"1551978730","creationTimestamp":"2019-02-06T08:28:45Z","labels":{"build":"spring-boot-web-jsp","buildconfig":"spring-boot-web-jsp","openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.number":"2"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"spring-boot-web-jsp","uid":"dca2a601-29e5-11e9-b20e-02d7906e6061","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Binary","binary":{}},"revision":{"type":"Git","git":{"commit":"4de7fd332209bda78c63507b1c9c8535ebf97cc6","author":{"name":"Guy Chauliac","email":"guy.chauliac@gmail.com"},"committer":{"name":"GitHub","email":"noreply@github.com"},"message":"Update readme.md"}},"strategy":{"type":"Docker","dockerStrategy":{"from":{"kind":"DockerImage","name":"amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799"}}},"output":{"to":{"kind":"DockerImage","name":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest"},"pushSecret":{"name":"builder-dockercfg-tr762"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[]},"status":{"phase":"New","outputDockerImageReference":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest","config":{"kind":"BuildConfig","namespace":"pccorp-esales-dev-axa-be","name":"spring-boot-web-jsp"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.72
+      image: openshift3/ose-docker-builder:v3.7.72
+      imagePullPolicy: IfNotPresent
+      name: manage-dockerfile
+      resources:
+        limits:
+          cpu: 93m
+          memory: 256Mi
+        requests:
+          cpu: 61m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-rvz7v
+        readOnly: true
+    nodeName: ip-10-135-243-133.eu-central-1.compute.internal
+    nodeSelector:
+      axa-cloud.com/application-role: production
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: builder
+    serviceAccountName: builder
+    terminationGracePeriodSeconds: 30
+    volumes:
+    - emptyDir: {}
+      name: buildworkdir
+    - hostPath:
+        path: /var/run/docker.sock
+        type: ""
+      name: docker-socket
+    - hostPath:
+        path: /var/run/crio.sock
+        type: ""
+      name: crio-socket
+    - name: builder-dockercfg-tr762-push
+      secret:
+        defaultMode: 384
+        secretName: builder-dockercfg-tr762
+    - name: builder-token-rvz7v
+      secret:
+        defaultMode: 420
+        secretName: builder-token-rvz7v
+  status:
+    phase: Pending
+    qosClass: Burstable
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubernetes.io/limit-ranger: 'LimitRanger plugin set: cpu, memory request for
+        container docker-build; cpu, memory limit for container docker-build; cpu,
+        memory request for init container git-clone; cpu, memory limit for init container
+        git-clone; cpu, memory request for init container manage-dockerfile; cpu,
+        memory limit for init container manage-dockerfile'
+      openshift.io/build.name: spring-boot-web-jsp-3
+      openshift.io/scc: privileged
+    creationTimestamp: null
+    labels:
+      openshift.io/build.name: spring-boot-web-jsp-3
+    name: spring-boot-web-jsp-3-build
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: Build
+      name: spring-boot-web-jsp-3
+      uid: 0c945848-29eb-11e9-b20e-02d7906e6061
+  spec:
+    containers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-docker-build
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"spring-boot-web-jsp-3","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/build.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/builds/spring-boot-web-jsp-3","uid":"0c945848-29eb-11e9-b20e-02d7906e6061","resourceVersion":"1552010534","creationTimestamp":"2019-02-06T08:41:51Z","labels":{"build":"spring-boot-web-jsp","buildconfig":"spring-boot-web-jsp","openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.number":"3"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"spring-boot-web-jsp","uid":"dca2a601-29e5-11e9-b20e-02d7906e6061","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Binary","binary":{}},"revision":{"type":"Git","git":{"commit":"4de7fd332209bda78c63507b1c9c8535ebf97cc6","author":{"name":"Guy Chauliac","email":"guy.chauliac@gmail.com"},"committer":{"name":"GitHub","email":"noreply@github.com"},"message":"Update readme.md"}},"strategy":{"type":"Docker","dockerStrategy":{"from":{"kind":"DockerImage","name":"amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799"}}},"output":{"to":{"kind":"DockerImage","name":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest"},"pushSecret":{"name":"builder-dockercfg-tr762"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[]},"status":{"phase":"New","outputDockerImageReference":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest","config":{"kind":"BuildConfig","namespace":"pccorp-esales-dev-axa-be","name":"spring-boot-web-jsp"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.72
+      - name: PUSH_DOCKERCFG_PATH
+        value: /var/run/secrets/openshift.io/push
+      image: openshift3/ose-docker-builder:v3.7.72
+      imagePullPolicy: IfNotPresent
+      name: docker-build
+      resources:
+        limits:
+          cpu: 93m
+          memory: 256Mi
+        requests:
+          cpu: 61m
+          memory: 256Mi
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/docker.sock
+        name: docker-socket
+      - mountPath: /var/run/crio.sock
+        name: crio-socket
+      - mountPath: /var/run/secrets/openshift.io/push
+        name: builder-dockercfg-tr762-push
+        readOnly: true
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-rvz7v
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    imagePullSecrets:
+    - name: builder-dockercfg-tr762
+    initContainers:
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-git-clone
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"spring-boot-web-jsp-3","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/build.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/builds/spring-boot-web-jsp-3","uid":"0c945848-29eb-11e9-b20e-02d7906e6061","resourceVersion":"1552010534","creationTimestamp":"2019-02-06T08:41:51Z","labels":{"build":"spring-boot-web-jsp","buildconfig":"spring-boot-web-jsp","openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.number":"3"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"spring-boot-web-jsp","uid":"dca2a601-29e5-11e9-b20e-02d7906e6061","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Binary","binary":{}},"revision":{"type":"Git","git":{"commit":"4de7fd332209bda78c63507b1c9c8535ebf97cc6","author":{"name":"Guy Chauliac","email":"guy.chauliac@gmail.com"},"committer":{"name":"GitHub","email":"noreply@github.com"},"message":"Update readme.md"}},"strategy":{"type":"Docker","dockerStrategy":{"from":{"kind":"DockerImage","name":"amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799"}}},"output":{"to":{"kind":"DockerImage","name":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest"},"pushSecret":{"name":"builder-dockercfg-tr762"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[]},"status":{"phase":"New","outputDockerImageReference":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest","config":{"kind":"BuildConfig","namespace":"pccorp-esales-dev-axa-be","name":"spring-boot-web-jsp"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.72
+      image: openshift3/ose-docker-builder:v3.7.72
+      imagePullPolicy: IfNotPresent
+      name: git-clone
+      resources:
+        limits:
+          cpu: 93m
+          memory: 256Mi
+        requests:
+          cpu: 61m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      stdin: true
+      stdinOnce: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-rvz7v
+        readOnly: true
+    - args:
+      - --loglevel=0
+      command:
+      - openshift-manage-dockerfile
+      env:
+      - name: BUILD
+        value: |
+          {"kind":"Build","apiVersion":"v1","metadata":{"name":"spring-boot-web-jsp-3","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/build.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/builds/spring-boot-web-jsp-3","uid":"0c945848-29eb-11e9-b20e-02d7906e6061","resourceVersion":"1552010534","creationTimestamp":"2019-02-06T08:41:51Z","labels":{"build":"spring-boot-web-jsp","buildconfig":"spring-boot-web-jsp","openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.start-policy":"Serial"},"annotations":{"openshift.io/build-config.name":"spring-boot-web-jsp","openshift.io/build.number":"3"},"ownerReferences":[{"apiVersion":"build.openshift.io/v1","kind":"BuildConfig","name":"spring-boot-web-jsp","uid":"dca2a601-29e5-11e9-b20e-02d7906e6061","controller":true}]},"spec":{"serviceAccount":"builder","source":{"type":"Binary","binary":{}},"revision":{"type":"Git","git":{"commit":"4de7fd332209bda78c63507b1c9c8535ebf97cc6","author":{"name":"Guy Chauliac","email":"guy.chauliac@gmail.com"},"committer":{"name":"GitHub","email":"noreply@github.com"},"message":"Update readme.md"}},"strategy":{"type":"Docker","dockerStrategy":{"from":{"kind":"DockerImage","name":"amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799"}}},"output":{"to":{"kind":"DockerImage","name":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest"},"pushSecret":{"name":"builder-dockercfg-tr762"}},"resources":{},"postCommit":{},"nodeSelector":null,"triggeredBy":[]},"status":{"phase":"New","outputDockerImageReference":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest","config":{"kind":"BuildConfig","namespace":"pccorp-esales-dev-axa-be","name":"spring-boot-web-jsp"},"output":{}}}
+      - name: ORIGIN_VERSION
+        value: v3.7.72
+      image: openshift3/ose-docker-builder:v3.7.72
+      imagePullPolicy: IfNotPresent
+      name: manage-dockerfile
+      resources:
+        limits:
+          cpu: 93m
+          memory: 256Mi
+        requests:
+          cpu: 61m
+          memory: 256Mi
+      securityContext:
+        privileged: false
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: FallbackToLogsOnError
+      volumeMounts:
+      - mountPath: /tmp/build
+        name: buildworkdir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: builder-token-rvz7v
+        readOnly: true
+    nodeName: ip-10-135-240-163.eu-central-1.compute.internal
+    nodeSelector:
+      axa-cloud.com/application-role: production
+    restartPolicy: Never
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: builder
+    serviceAccountName: builder
+    terminationGracePeriodSeconds: 30
+    volumes:
+    - emptyDir: {}
+      name: buildworkdir
+    - hostPath:
+        path: /var/run/docker.sock
+        type: ""
+      name: docker-socket
+    - hostPath:
+        path: /var/run/crio.sock
+        type: ""
+      name: crio-socket
+    - name: builder-dockercfg-tr762-push
+      secret:
+        defaultMode: 384
+        secretName: builder-dockercfg-tr762
+    - name: builder-token-rvz7v
+      secret:
+        defaultMode: 420
+        secretName: builder-token-rvz7v
+  status:
+    phase: Pending
+    qosClass: Burstable
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/desired-replicas: "1"
+      openshift.io/deployer-pod.completed-at: 2018-11-07 22:39:37 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2018-11-07 22:29:33 +0000 UTC
+      openshift.io/deployer-pod.name: openpaas-jenkins-deploy-5-deploy
+      openshift.io/deployment-config.latest-version: "5"
+      openshift.io/deployment-config.name: openpaas-jenkins-deploy
+      openshift.io/deployment.phase: Failed
+      openshift.io/deployment.replicas: "0"
+      openshift.io/deployment.status-reason: config change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"openpaas-jenkins-deploy","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/apps.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/deploymentconfigs/openpaas-jenkins-deploy","uid":"b1bccf44-e2ce-11e8-876d-02d7906e6061","resourceVersion":"1241289339","generation":5,"creationTimestamp":"2018-11-07T20:50:00Z","labels":{"app":"openpaas-jenkins-deploy","created-by":"template","template":"openpaas-jenkins-deploy"}},"spec":{"strategy":{"type":"Recreate","recreateParams":{"timeoutSeconds":600},"resources":{"limits":{"cpu":"187m","memory":"512Mi"}},"activeDeadlineSeconds":21600},"triggers":[{"type":"ConfigChange"}],"replicas":1,"test":false,"selector":{"app":"openpaas-jenkins-deploy","deploymentconfig":"openpaas-jenkins-deploy"},"template":{"metadata":{"creationTimestamp":null,"labels":{"app":"openpaas-jenkins-deploy","deploymentconfig":"openpaas-jenkins-deploy"}},"spec":{"volumes":[{"name":"jenkins-openpaas-data","persistentVolumeClaim":{"claimName":"jenkins-openpaas-data"}}],"containers":[{"name":"jenkins-openpaas","image":"172.30.37.22:5000/jenkins/jenkins-openpaas:release","ports":[{"containerPort":8080,"protocol":"TCP"},{"containerPort":50000,"protocol":"TCP"}],"env":[{"name":"OPENSHIFT_ENABLE_OAUTH","value":"false"},{"name":"OPENSHIFT_ENABLE_REDIRECT_PROMPT","value":"true"},{"name":"KUBERNETES_MASTER","value":"https://kubernetes.default.svc.cluster.local:443"},{"name":"KUBERNETES_TRUST_CERTIFICATES","value":"true"},{"name":"JNLP_SERVICE_NAME","value":"openpaas-jenkins-deploy-jnlp"},{"name":"JAVA_OPTS","value":"-Dorg.csanchez.jenkins.plugins.kubernetes.pipeline.PodTemplateStepExecution.defaultImage=172.30.37.22:5000/jenkins/openpaas-jenkins-slave-jnlp:release"},{"name":"APPLICATION_NAME","value":"openpaas-jenkins-deploy"},{"name":"AUTO_INSTALL","value":"False"},{"name":"NAME_SPACE","valueFrom":{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.namespace"}}},{"name":"DOCKER_REGISTRY_ENDPOINT","value":"172.30.37.22:5000"},{"name":"http_proxy"},{"name":"https_proxy"},{"name":"HTTP_PROXY"},{"name":"HTTPS_PROXY"}],"resources":{"limits":{"cpu":"150m","memory":"512Mi"}},"volumeMounts":[{"name":"jenkins-openpaas-data","mountPath":"/var/lib/jenkins"}],"livenessProbe":{"httpGet":{"path":"/login","port":8080,"scheme":"HTTP"},"initialDelaySeconds":420,"timeoutSeconds":3,"periodSeconds":10,"successThreshold":1,"failureThreshold":30},"readinessProbe":{"httpGet":{"path":"/login","port":8080,"scheme":"HTTP"},"initialDelaySeconds":3,"timeoutSeconds":3,"periodSeconds":10,"successThreshold":1,"failureThreshold":3},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":30,"dnsPolicy":"ClusterFirst","serviceAccountName":"openpaas-jenkins-deploy","serviceAccount":"openpaas-jenkins-deploy","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":5,"observedGeneration":4,"replicas":0,"updatedReplicas":0,"availableReplicas":0,"unavailableReplicas":0,"details":{"message":"config change","causes":[{"type":"ConfigChange"}]},"conditions":[{"type":"Available","status":"False","lastUpdateTime":"2018-11-07T20:50:00Z","lastTransitionTime":"2018-11-07T20:50:00Z","message":"Deployment config does not have minimum availability."},{"type":"Progressing","status":"False","lastUpdateTime":"2018-11-07T21:12:19Z","lastTransitionTime":"2018-11-07T21:12:19Z","reason":"ProgressDeadlineExceeded","message":"replication controller \"openpaas-jenkins-deploy-4\" has failed progressing"}]}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: openpaas-jenkins-deploy
+      created-by: template
+      openshift.io/deployment-config.name: openpaas-jenkins-deploy
+      template: openpaas-jenkins-deploy
+    name: openpaas-jenkins-deploy-5
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: openpaas-jenkins-deploy
+      uid: b1bccf44-e2ce-11e8-876d-02d7906e6061
+  spec:
+    replicas: 0
+    selector:
+      app: openpaas-jenkins-deploy
+      deployment: openpaas-jenkins-deploy-5
+      deploymentconfig: openpaas-jenkins-deploy
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "5"
+          openshift.io/deployment-config.name: openpaas-jenkins-deploy
+          openshift.io/deployment.name: openpaas-jenkins-deploy-5
+        creationTimestamp: null
+        labels:
+          app: openpaas-jenkins-deploy
+          deployment: openpaas-jenkins-deploy-5
+          deploymentconfig: openpaas-jenkins-deploy
+      spec:
+        containers:
+        - env:
+          - name: OPENSHIFT_ENABLE_OAUTH
+            value: "false"
+          - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
+            value: "true"
+          - name: KUBERNETES_MASTER
+            value: https://kubernetes.default.svc.cluster.local:443
+          - name: KUBERNETES_TRUST_CERTIFICATES
+            value: "true"
+          - name: JNLP_SERVICE_NAME
+            value: openpaas-jenkins-deploy-jnlp
+          - name: JAVA_OPTS
+            value: -Dorg.csanchez.jenkins.plugins.kubernetes.pipeline.PodTemplateStepExecution.defaultImage=172.30.37.22:5000/jenkins/openpaas-jenkins-slave-jnlp:release
+          - name: APPLICATION_NAME
+            value: openpaas-jenkins-deploy
+          - name: AUTO_INSTALL
+            value: "False"
+          - name: NAME_SPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: DOCKER_REGISTRY_ENDPOINT
+            value: 172.30.37.22:5000
+          - name: http_proxy
+          - name: https_proxy
+          - name: HTTP_PROXY
+          - name: HTTPS_PROXY
+          image: 172.30.37.22:5000/jenkins/jenkins-openpaas:release
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 420
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: jenkins-openpaas
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 50000
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 150m
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/jenkins
+            name: jenkins-openpaas-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: openpaas-jenkins-deploy
+        serviceAccountName: openpaas-jenkins-deploy
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: jenkins-openpaas-data
+          persistentVolumeClaim:
+            claimName: jenkins-openpaas-data
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      openshift.io/deployer-pod.completed-at: 2018-11-07 22:53:36 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2018-11-07 22:42:20 +0000 UTC
+      openshift.io/deployer-pod.name: openpaas-jenkins-deploy-6-deploy
+      openshift.io/deployment-config.latest-version: "6"
+      openshift.io/deployment-config.name: openpaas-jenkins-deploy
+      openshift.io/deployment.phase: Complete
+      openshift.io/deployment.replicas: "1"
+      openshift.io/deployment.status-reason: manual change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"openpaas-jenkins-deploy","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/apps.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/deploymentconfigs/openpaas-jenkins-deploy","uid":"b1bccf44-e2ce-11e8-876d-02d7906e6061","resourceVersion":"1241317487","generation":8,"creationTimestamp":"2018-11-07T20:50:00Z","labels":{"app":"openpaas-jenkins-deploy","created-by":"template","template":"openpaas-jenkins-deploy"}},"spec":{"strategy":{"type":"Recreate","recreateParams":{"timeoutSeconds":1200},"resources":{"limits":{"cpu":"187m","memory":"512Mi"}},"activeDeadlineSeconds":21600},"triggers":[{"type":"ConfigChange"}],"replicas":1,"test":false,"selector":{"app":"openpaas-jenkins-deploy","deploymentconfig":"openpaas-jenkins-deploy"},"template":{"metadata":{"creationTimestamp":null,"labels":{"app":"openpaas-jenkins-deploy","deploymentconfig":"openpaas-jenkins-deploy"}},"spec":{"volumes":[{"name":"jenkins-openpaas-data","persistentVolumeClaim":{"claimName":"jenkins-openpaas-data"}}],"containers":[{"name":"jenkins-openpaas","image":"172.30.37.22:5000/jenkins/jenkins-openpaas:release","ports":[{"containerPort":8080,"protocol":"TCP"},{"containerPort":50000,"protocol":"TCP"}],"env":[{"name":"OPENSHIFT_ENABLE_OAUTH","value":"false"},{"name":"OPENSHIFT_ENABLE_REDIRECT_PROMPT","value":"true"},{"name":"KUBERNETES_MASTER","value":"https://kubernetes.default.svc.cluster.local:443"},{"name":"KUBERNETES_TRUST_CERTIFICATES","value":"true"},{"name":"JNLP_SERVICE_NAME","value":"openpaas-jenkins-deploy-jnlp"},{"name":"JAVA_OPTS","value":"-Dorg.csanchez.jenkins.plugins.kubernetes.pipeline.PodTemplateStepExecution.defaultImage=172.30.37.22:5000/jenkins/openpaas-jenkins-slave-jnlp:release"},{"name":"APPLICATION_NAME","value":"openpaas-jenkins-deploy"},{"name":"AUTO_INSTALL","value":"False"},{"name":"NAME_SPACE","valueFrom":{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.namespace"}}},{"name":"DOCKER_REGISTRY_ENDPOINT","value":"172.30.37.22:5000"},{"name":"http_proxy"},{"name":"https_proxy"},{"name":"HTTP_PROXY"},{"name":"HTTPS_PROXY"}],"resources":{"limits":{"cpu":"150m","memory":"512Mi"}},"volumeMounts":[{"name":"jenkins-openpaas-data","mountPath":"/var/lib/jenkins"}],"livenessProbe":{"httpGet":{"path":"/login","port":8080,"scheme":"HTTP"},"initialDelaySeconds":420,"timeoutSeconds":3,"periodSeconds":10,"successThreshold":1,"failureThreshold":30},"readinessProbe":{"httpGet":{"path":"/login","port":8080,"scheme":"HTTP"},"initialDelaySeconds":3,"timeoutSeconds":3,"periodSeconds":10,"successThreshold":1,"failureThreshold":3},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":30,"dnsPolicy":"ClusterFirst","serviceAccountName":"openpaas-jenkins-deploy","serviceAccount":"openpaas-jenkins-deploy","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":6,"observedGeneration":7,"replicas":0,"updatedReplicas":0,"availableReplicas":0,"unavailableReplicas":0,"details":{"message":"manual change","causes":[{"type":"Manual"}]},"conditions":[{"type":"Available","status":"False","lastUpdateTime":"2018-11-07T20:50:00Z","lastTransitionTime":"2018-11-07T20:50:00Z","message":"Deployment config does not have minimum availability."},{"type":"Progressing","status":"False","lastUpdateTime":"2018-11-07T22:39:38Z","lastTransitionTime":"2018-11-07T22:39:38Z","reason":"ProgressDeadlineExceeded","message":"replication controller \"openpaas-jenkins-deploy-5\" has failed progressing"}]}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: openpaas-jenkins-deploy
+      created-by: template
+      openshift.io/deployment-config.name: openpaas-jenkins-deploy
+      template: openpaas-jenkins-deploy
+    name: openpaas-jenkins-deploy-6
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: openpaas-jenkins-deploy
+      uid: b1bccf44-e2ce-11e8-876d-02d7906e6061
+  spec:
+    replicas: 0
+    selector:
+      app: openpaas-jenkins-deploy
+      deployment: openpaas-jenkins-deploy-6
+      deploymentconfig: openpaas-jenkins-deploy
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "6"
+          openshift.io/deployment-config.name: openpaas-jenkins-deploy
+          openshift.io/deployment.name: openpaas-jenkins-deploy-6
+        creationTimestamp: null
+        labels:
+          app: openpaas-jenkins-deploy
+          deployment: openpaas-jenkins-deploy-6
+          deploymentconfig: openpaas-jenkins-deploy
+      spec:
+        containers:
+        - env:
+          - name: OPENSHIFT_ENABLE_OAUTH
+            value: "false"
+          - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
+            value: "true"
+          - name: KUBERNETES_MASTER
+            value: https://kubernetes.default.svc.cluster.local:443
+          - name: KUBERNETES_TRUST_CERTIFICATES
+            value: "true"
+          - name: JNLP_SERVICE_NAME
+            value: openpaas-jenkins-deploy-jnlp
+          - name: JAVA_OPTS
+            value: -Dorg.csanchez.jenkins.plugins.kubernetes.pipeline.PodTemplateStepExecution.defaultImage=172.30.37.22:5000/jenkins/openpaas-jenkins-slave-jnlp:release
+          - name: APPLICATION_NAME
+            value: openpaas-jenkins-deploy
+          - name: AUTO_INSTALL
+            value: "False"
+          - name: NAME_SPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: DOCKER_REGISTRY_ENDPOINT
+            value: 172.30.37.22:5000
+          - name: http_proxy
+          - name: https_proxy
+          - name: HTTP_PROXY
+          - name: HTTPS_PROXY
+          image: 172.30.37.22:5000/jenkins/jenkins-openpaas:release
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 420
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: jenkins-openpaas
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 50000
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 150m
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/jenkins
+            name: jenkins-openpaas-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: openpaas-jenkins-deploy
+        serviceAccountName: openpaas-jenkins-deploy
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: jenkins-openpaas-data
+          persistentVolumeClaim:
+            claimName: jenkins-openpaas-data
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      openshift.io/deployer-pod.completed-at: 2018-11-08 12:10:49 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2018-11-08 11:59:20 +0000 UTC
+      openshift.io/deployer-pod.name: openpaas-jenkins-deploy-7-deploy
+      openshift.io/deployment-config.latest-version: "7"
+      openshift.io/deployment-config.name: openpaas-jenkins-deploy
+      openshift.io/deployment.phase: Complete
+      openshift.io/deployment.replicas: "1"
+      openshift.io/deployment.status-reason: config change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"openpaas-jenkins-deploy","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/apps.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/deploymentconfigs/openpaas-jenkins-deploy","uid":"b1bccf44-e2ce-11e8-876d-02d7906e6061","resourceVersion":"1243077792","generation":9,"creationTimestamp":"2018-11-07T20:50:00Z","labels":{"app":"openpaas-jenkins-deploy","created-by":"template","template":"openpaas-jenkins-deploy"}},"spec":{"strategy":{"type":"Recreate","recreateParams":{"timeoutSeconds":1200},"resources":{"limits":{"cpu":"187m","memory":"512Mi"}},"activeDeadlineSeconds":21600},"triggers":[{"type":"ConfigChange"}],"replicas":1,"test":false,"selector":{"app":"openpaas-jenkins-deploy","deploymentconfig":"openpaas-jenkins-deploy"},"template":{"metadata":{"creationTimestamp":null,"labels":{"app":"openpaas-jenkins-deploy","deploymentconfig":"openpaas-jenkins-deploy"}},"spec":{"volumes":[{"name":"jenkins-openpaas-data","persistentVolumeClaim":{"claimName":"jenkins-openpaas-data"}}],"containers":[{"name":"jenkins-openpaas","image":"172.30.37.22:5000/jenkins/jenkins-openpaas:release","ports":[{"containerPort":8080,"protocol":"TCP"},{"containerPort":50000,"protocol":"TCP"}],"env":[{"name":"OPENSHIFT_ENABLE_OAUTH","value":"false"},{"name":"OPENSHIFT_ENABLE_REDIRECT_PROMPT","value":"true"},{"name":"KUBERNETES_MASTER","value":"https://kubernetes.default.svc.cluster.local:443"},{"name":"KUBERNETES_TRUST_CERTIFICATES","value":"true"},{"name":"JNLP_SERVICE_NAME","value":"openpaas-jenkins-deploy-jnlp"},{"name":"JAVA_OPTS","value":"-Dorg.csanchez.jenkins.plugins.kubernetes.pipeline.PodTemplateStepExecution.defaultImage=172.30.37.22:5000/jenkins/openpaas-jenkins-slave-jnlp:release"},{"name":"APPLICATION_NAME","value":"openpaas-jenkins-deploy"},{"name":"AUTO_INSTALL","value":"False"},{"name":"NAME_SPACE","valueFrom":{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.namespace"}}},{"name":"DOCKER_REGISTRY_ENDPOINT","value":"172.30.37.22:5000"},{"name":"http_proxy","value":"http://egress-http-proxy:8080"},{"name":"https_proxy","value":"http://egress-http-proxy:8080"},{"name":"HTTP_PROXY","value":"http://egress-http-proxy:8080"},{"name":"HTTPS_PROXY","value":"http://egress-http-proxy:8080"}],"resources":{"limits":{"cpu":"150m","memory":"512Mi"}},"volumeMounts":[{"name":"jenkins-openpaas-data","mountPath":"/var/lib/jenkins"}],"livenessProbe":{"httpGet":{"path":"/login","port":8080,"scheme":"HTTP"},"initialDelaySeconds":420,"timeoutSeconds":3,"periodSeconds":10,"successThreshold":1,"failureThreshold":30},"readinessProbe":{"httpGet":{"path":"/login","port":8080,"scheme":"HTTP"},"initialDelaySeconds":3,"timeoutSeconds":3,"periodSeconds":10,"successThreshold":1,"failureThreshold":3},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":30,"dnsPolicy":"ClusterFirst","serviceAccountName":"openpaas-jenkins-deploy","serviceAccount":"openpaas-jenkins-deploy","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":7,"observedGeneration":8,"replicas":1,"updatedReplicas":1,"availableReplicas":1,"unavailableReplicas":0,"details":{"message":"config change","causes":[{"type":"ConfigChange"}]},"conditions":[{"type":"Available","status":"True","lastUpdateTime":"2018-11-07T22:53:36Z","lastTransitionTime":"2018-11-07T22:53:36Z","message":"Deployment config has minimum availability."},{"type":"Progressing","status":"True","lastUpdateTime":"2018-11-07T22:53:36Z","lastTransitionTime":"2018-11-07T22:42:25Z","reason":"NewReplicationControllerAvailable","message":"replication controller \"openpaas-jenkins-deploy-6\" successfully rolled out"}],"readyReplicas":1}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: openpaas-jenkins-deploy
+      created-by: template
+      openshift.io/deployment-config.name: openpaas-jenkins-deploy
+      template: openpaas-jenkins-deploy
+    name: openpaas-jenkins-deploy-7
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: openpaas-jenkins-deploy
+      uid: b1bccf44-e2ce-11e8-876d-02d7906e6061
+  spec:
+    replicas: 0
+    selector:
+      app: openpaas-jenkins-deploy
+      deployment: openpaas-jenkins-deploy-7
+      deploymentconfig: openpaas-jenkins-deploy
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "7"
+          openshift.io/deployment-config.name: openpaas-jenkins-deploy
+          openshift.io/deployment.name: openpaas-jenkins-deploy-7
+        creationTimestamp: null
+        labels:
+          app: openpaas-jenkins-deploy
+          deployment: openpaas-jenkins-deploy-7
+          deploymentconfig: openpaas-jenkins-deploy
+      spec:
+        containers:
+        - env:
+          - name: OPENSHIFT_ENABLE_OAUTH
+            value: "false"
+          - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
+            value: "true"
+          - name: KUBERNETES_MASTER
+            value: https://kubernetes.default.svc.cluster.local:443
+          - name: KUBERNETES_TRUST_CERTIFICATES
+            value: "true"
+          - name: JNLP_SERVICE_NAME
+            value: openpaas-jenkins-deploy-jnlp
+          - name: JAVA_OPTS
+            value: -Dorg.csanchez.jenkins.plugins.kubernetes.pipeline.PodTemplateStepExecution.defaultImage=172.30.37.22:5000/jenkins/openpaas-jenkins-slave-jnlp:release
+          - name: APPLICATION_NAME
+            value: openpaas-jenkins-deploy
+          - name: AUTO_INSTALL
+            value: "False"
+          - name: NAME_SPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: DOCKER_REGISTRY_ENDPOINT
+            value: 172.30.37.22:5000
+          - name: http_proxy
+            value: http://egress-http-proxy:8080
+          - name: https_proxy
+            value: http://egress-http-proxy:8080
+          - name: HTTP_PROXY
+            value: http://egress-http-proxy:8080
+          - name: HTTPS_PROXY
+            value: http://egress-http-proxy:8080
+          image: 172.30.37.22:5000/jenkins/jenkins-openpaas:release
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 420
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: jenkins-openpaas
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 50000
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 150m
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/jenkins
+            name: jenkins-openpaas-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: openpaas-jenkins-deploy
+        serviceAccountName: openpaas-jenkins-deploy
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: jenkins-openpaas-data
+          persistentVolumeClaim:
+            claimName: jenkins-openpaas-data
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/desired-replicas: "1"
+      openshift.io/deployer-pod.completed-at: 2018-12-04 23:13:11 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2018-12-04 23:00:52 +0000 UTC
+      openshift.io/deployer-pod.name: pc-cpq-template-mongodb-4-deploy
+      openshift.io/deployment-config.latest-version: "4"
+      openshift.io/deployment-config.name: pc-cpq-template-mongodb
+      openshift.io/deployment.phase: Failed
+      openshift.io/deployment.replicas: "0"
+      openshift.io/deployment.status-reason: image change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"pc-cpq-template-mongodb","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/apps.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/deploymentconfigs/pc-cpq-template-mongodb","uid":"f4203917-d6af-11e8-b034-02a300ce655d","resourceVersion":"1333180884","generation":5,"creationTimestamp":"2018-10-23T10:39:43Z","labels":{"app":"jws30-tomcat8-mongodb-persistent-s2i","application":"pc-cpq-template","template":"jws30-tomcat8-mongodb-persistent-s2i","xpaas":"1.4.0"}},"spec":{"strategy":{"type":"Recreate","recreateParams":{"timeoutSeconds":600},"resources":{},"activeDeadlineSeconds":21600},"triggers":[{"type":"ImageChange","imageChangeParams":{"automatic":true,"containerNames":["pc-cpq-template-mongodb"],"from":{"kind":"ImageStreamTag","namespace":"openshift","name":"mongodb:3.2"},"lastTriggeredImage":"registry.access.redhat.com/rhscl/mongodb-32-rhel7@sha256:8fea1e4a7f3ae48a2e49b74eaa23b919cb7f4ce1d2a2037fc612769116c1e4e5"}},{"type":"ConfigChange"}],"replicas":1,"test":false,"selector":{"deploymentConfig":"pc-cpq-template-mongodb"},"template":{"metadata":{"name":"pc-cpq-template-mongodb","creationTimestamp":null,"labels":{"application":"pc-cpq-template","deploymentConfig":"pc-cpq-template-mongodb"}},"spec":{"volumes":[{"name":"pc-cpq-template-mongodb-pvol","persistentVolumeClaim":{"claimName":"pc-cpq-template-mongodb-claim"}},{"name":"volume-d1kb6","persistentVolumeClaim":{"claimName":"pc-cpq-template-mongodb-claim"}}],"containers":[{"name":"pc-cpq-template-mongodb","image":"registry.access.redhat.com/rhscl/mongodb-32-rhel7@sha256:8fea1e4a7f3ae48a2e49b74eaa23b919cb7f4ce1d2a2037fc612769116c1e4e5","ports":[{"containerPort":27017,"protocol":"TCP"}],"env":[{"name":"MONGODB_USER","value":"layoutdbit"},{"name":"MONGODB_PASSWORD","value":"jpGGMssDtBT0gCmwCIXKZbSD"},{"name":"MONGODB_DATABASE","value":"pcCpqTemplate"},{"name":"MONGODB_ADMIN_PASSWORD","value":"YqcwqNiJ"},{"name":"MONGODB_NOPREALLOC"},{"name":"MONGODB_SMALLFILES"},{"name":"MONGODB_QUIET"}],"resources":{},"volumeMounts":[{"name":"pc-cpq-template-mongodb-pvol","mountPath":"/var/lib/mongodb/data"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":60,"dnsPolicy":"ClusterFirst","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":4,"observedGeneration":4,"replicas":0,"updatedReplicas":0,"availableReplicas":0,"unavailableReplicas":0,"details":{"message":"image change","causes":[{"type":"ImageChange","imageTrigger":{"from":{"kind":"DockerImage","name":"registry.access.redhat.com/rhscl/mongodb-32-rhel7@sha256:8fea1e4a7f3ae48a2e49b74eaa23b919cb7f4ce1d2a2037fc612769116c1e4e5"}}}]},"conditions":[{"type":"Available","status":"False","lastUpdateTime":"2018-10-23T10:39:43Z","lastTransitionTime":"2018-10-23T10:39:43Z","message":"Deployment config does not have minimum availability."},{"type":"Progressing","status":"False","lastUpdateTime":"2018-11-07T23:23:04Z","lastTransitionTime":"2018-11-07T23:23:04Z","reason":"ProgressDeadlineExceeded","message":"replication controller \"pc-cpq-template-mongodb-3\" has failed progressing"}]}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      openshift.io/deployment-config.name: pc-cpq-template-mongodb
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template-mongodb-4
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: pc-cpq-template-mongodb
+      uid: f4203917-d6af-11e8-b034-02a300ce655d
+  spec:
+    replicas: 0
+    selector:
+      deployment: pc-cpq-template-mongodb-4
+      deploymentConfig: pc-cpq-template-mongodb
+      deploymentconfig: pc-cpq-template-mongodb
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "4"
+          openshift.io/deployment-config.name: pc-cpq-template-mongodb
+          openshift.io/deployment.name: pc-cpq-template-mongodb-4
+        creationTimestamp: null
+        labels:
+          application: pc-cpq-template
+          deployment: pc-cpq-template-mongodb-4
+          deploymentConfig: pc-cpq-template-mongodb
+          deploymentconfig: pc-cpq-template-mongodb
+      spec:
+        containers:
+        - env:
+          - name: MONGODB_USER
+            value: layoutdbit
+          - name: MONGODB_PASSWORD
+            value: jpGGMssDtBT0gCmwCIXKZbSD
+          - name: MONGODB_DATABASE
+            value: pcCpqTemplate
+          - name: MONGODB_ADMIN_PASSWORD
+            value: YqcwqNiJ
+          - name: MONGODB_NOPREALLOC
+          - name: MONGODB_SMALLFILES
+          - name: MONGODB_QUIET
+          image: registry.access.redhat.com/rhscl/mongodb-32-rhel7@sha256:8fea1e4a7f3ae48a2e49b74eaa23b919cb7f4ce1d2a2037fc612769116c1e4e5
+          imagePullPolicy: Always
+          name: pc-cpq-template-mongodb
+          ports:
+          - containerPort: 27017
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/mongodb/data
+            name: pc-cpq-template-mongodb-pvol
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 60
+        volumes:
+        - name: pc-cpq-template-mongodb-pvol
+          persistentVolumeClaim:
+            claimName: pc-cpq-template-mongodb-claim
+        - name: volume-d1kb6
+          persistentVolumeClaim:
+            claimName: pc-cpq-template-mongodb-claim
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/original-replicas: "1"
+      openshift.io/deployer-pod.completed-at: 2019-02-06 08:17:44 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2019-02-06 08:17:10 +0000 UTC
+      openshift.io/deployer-pod.name: spring-boot-web-jsp-1-deploy
+      openshift.io/deployment-config.latest-version: "1"
+      openshift.io/deployment-config.name: spring-boot-web-jsp
+      openshift.io/deployment.phase: Complete
+      openshift.io/deployment.replicas: "1"
+      openshift.io/deployment.status-reason: config change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"spring-boot-web-jsp","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/apps.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/deploymentconfigs/spring-boot-web-jsp","uid":"99da9051-29e7-11e9-a015-02f84cfb94e5","resourceVersion":"1551950769","generation":2,"creationTimestamp":"2019-02-06T08:17:10Z","labels":{"app":"spring-boot-web-jsp"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"strategy":{"type":"Rolling","rollingParams":{"updatePeriodSeconds":1,"intervalSeconds":1,"timeoutSeconds":600,"maxUnavailable":"25%","maxSurge":"25%"},"resources":{},"activeDeadlineSeconds":21600},"triggers":[{"type":"ConfigChange"},{"type":"ImageChange","imageChangeParams":{"automatic":true,"containerNames":["spring-boot-web-jsp"],"from":{"kind":"ImageStreamTag","namespace":"pccorp-esales-dev-axa-be","name":"spring-boot-web-jsp:latest"},"lastTriggeredImage":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp@sha256:2c1f32c9fa7f4dfabd4417f19db32d161235812340d3ba2d969b70c48677bda7"}}],"replicas":1,"revisionHistoryLimit":10,"test":false,"selector":{"app":"spring-boot-web-jsp","deploymentconfig":"spring-boot-web-jsp"},"template":{"metadata":{"creationTimestamp":null,"labels":{"app":"spring-boot-web-jsp","deploymentconfig":"spring-boot-web-jsp"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"containers":[{"name":"spring-boot-web-jsp","image":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp@sha256:2c1f32c9fa7f4dfabd4417f19db32d161235812340d3ba2d969b70c48677bda7","resources":{},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":30,"dnsPolicy":"ClusterFirst","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":1,"observedGeneration":0,"replicas":0,"updatedReplicas":0,"availableReplicas":0,"unavailableReplicas":0,"details":{"message":"config change","causes":[{"type":"ConfigChange"}]}}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: spring-boot-web-jsp
+      openshift.io/deployment-config.name: spring-boot-web-jsp
+    name: spring-boot-web-jsp-1
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: spring-boot-web-jsp
+      uid: 99da9051-29e7-11e9-a015-02f84cfb94e5
+  spec:
+    replicas: 0
+    selector:
+      app: spring-boot-web-jsp
+      deployment: spring-boot-web-jsp-1
+      deploymentconfig: spring-boot-web-jsp
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "1"
+          openshift.io/deployment-config.name: spring-boot-web-jsp
+          openshift.io/deployment.name: spring-boot-web-jsp-1
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: spring-boot-web-jsp
+          deployment: spring-boot-web-jsp-1
+          deploymentconfig: spring-boot-web-jsp
+      spec:
+        containers:
+        - image: 172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp@sha256:2c1f32c9fa7f4dfabd4417f19db32d161235812340d3ba2d969b70c48677bda7
+          imagePullPolicy: Always
+          name: spring-boot-web-jsp
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    annotations:
+      openshift.io/deployer-pod.completed-at: 2019-02-06 08:49:28 +0000 UTC
+      openshift.io/deployer-pod.created-at: 2019-02-06 08:43:26 +0000 UTC
+      openshift.io/deployer-pod.name: spring-boot-web-jsp-2-deploy
+      openshift.io/deployment-config.latest-version: "2"
+      openshift.io/deployment-config.name: spring-boot-web-jsp
+      openshift.io/deployment.phase: Complete
+      openshift.io/deployment.replicas: ""
+      openshift.io/deployment.status-reason: image change
+      openshift.io/encoded-deployment-config: |
+        {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"spring-boot-web-jsp","namespace":"pccorp-esales-dev-axa-be","selfLink":"/apis/apps.openshift.io/v1/namespaces/pccorp-esales-dev-axa-be/deploymentconfigs/spring-boot-web-jsp","uid":"99da9051-29e7-11e9-a015-02f84cfb94e5","resourceVersion":"1552014440","generation":3,"creationTimestamp":"2019-02-06T08:17:10Z","labels":{"app":"spring-boot-web-jsp"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"strategy":{"type":"Rolling","rollingParams":{"updatePeriodSeconds":1,"intervalSeconds":1,"timeoutSeconds":600,"maxUnavailable":"25%","maxSurge":"25%"},"resources":{},"activeDeadlineSeconds":21600},"triggers":[{"type":"ConfigChange"},{"type":"ImageChange","imageChangeParams":{"automatic":true,"containerNames":["spring-boot-web-jsp"],"from":{"kind":"ImageStreamTag","namespace":"pccorp-esales-dev-axa-be","name":"spring-boot-web-jsp:latest"},"lastTriggeredImage":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp@sha256:844f0118940e92f9e061f229c28013a2f31fcb0c13b7c50921faa528d6244a06"}}],"replicas":1,"revisionHistoryLimit":10,"test":false,"selector":{"app":"spring-boot-web-jsp","deploymentconfig":"spring-boot-web-jsp"},"template":{"metadata":{"creationTimestamp":null,"labels":{"app":"spring-boot-web-jsp","deploymentconfig":"spring-boot-web-jsp"},"annotations":{"openshift.io/generated-by":"OpenShiftNewApp"}},"spec":{"containers":[{"name":"spring-boot-web-jsp","image":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp@sha256:844f0118940e92f9e061f229c28013a2f31fcb0c13b7c50921faa528d6244a06","resources":{},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}],"restartPolicy":"Always","terminationGracePeriodSeconds":30,"dnsPolicy":"ClusterFirst","securityContext":{},"schedulerName":"default-scheduler"}}},"status":{"latestVersion":2,"observedGeneration":2,"replicas":1,"updatedReplicas":1,"availableReplicas":1,"unavailableReplicas":0,"details":{"message":"image change","causes":[{"type":"ImageChange","imageTrigger":{"from":{"kind":"DockerImage","name":"172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp@sha256:844f0118940e92f9e061f229c28013a2f31fcb0c13b7c50921faa528d6244a06"}}}]},"conditions":[{"type":"Available","status":"True","lastUpdateTime":"2019-02-06T08:17:44Z","lastTransitionTime":"2019-02-06T08:17:44Z","message":"Deployment config has minimum availability."},{"type":"Progressing","status":"True","lastUpdateTime":"2019-02-06T08:17:44Z","lastTransitionTime":"2019-02-06T08:17:17Z","reason":"NewReplicationControllerAvailable","message":"replication controller \"spring-boot-web-jsp-1\" successfully rolled out"}],"readyReplicas":1}}
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: spring-boot-web-jsp
+      openshift.io/deployment-config.name: spring-boot-web-jsp
+    name: spring-boot-web-jsp-2
+    ownerReferences:
+    - apiVersion: apps.openshift.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: DeploymentConfig
+      name: spring-boot-web-jsp
+      uid: 99da9051-29e7-11e9-a015-02f84cfb94e5
+  spec:
+    replicas: 1
+    selector:
+      app: spring-boot-web-jsp
+      deployment: spring-boot-web-jsp-2
+      deploymentconfig: spring-boot-web-jsp
+    template:
+      metadata:
+        annotations:
+          openshift.io/deployment-config.latest-version: "2"
+          openshift.io/deployment-config.name: spring-boot-web-jsp
+          openshift.io/deployment.name: spring-boot-web-jsp-2
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: spring-boot-web-jsp
+          deployment: spring-boot-web-jsp-2
+          deploymentconfig: spring-boot-web-jsp
+      spec:
+        containers:
+        - image: 172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp@sha256:844f0118940e92f9e061f229c28013a2f31fcb0c13b7c50921faa528d6244a06
+          imagePullPolicy: Always
+          name: spring-boot-web-jsp
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    replicas: 0
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    name: egress-http-proxy
+  spec:
+    externalName: egress-http-proxy.pccorp-esales-dev-axa-be-shadow.svc.cluster.local
+    sessionAffinity: None
+    type: ExternalName
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+      service.alpha.openshift.io/dependencies: '[{"name": "jenkins-jnlp", "namespace":
+        "", "kind": "Service"}]'
+      service.openshift.io/infrastructure: "true"
+    creationTimestamp: null
+    labels:
+      app: openpaas-jenkins-deploy
+      created-by: template
+      template: openpaas-jenkins-deploy
+    name: openpaas-jenkins-deploy
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    - name: 50000-tcp
+      port: 50000
+      protocol: TCP
+      targetPort: 50000
+    selector:
+      app: openpaas-jenkins-deploy
+      deploymentconfig: openpaas-jenkins-deploy
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      description: The web server's http port.
+      service.alpha.openshift.io/dependencies: '[{"name": "pc-cpq-template-mongodb",
+        "kind": "Service"}]'
+    creationTimestamp: null
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template
+  spec:
+    ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      deploymentConfig: pc-cpq-template
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      description: The database server's port.
+    creationTimestamp: null
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template-mongodb
+  spec:
+    ports:
+    - port: 27017
+      protocol: TCP
+      targetPort: 27017
+    selector:
+      deploymentConfig: pc-cpq-template-mongodb
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      description: The web server's https port.
+      service.alpha.openshift.io/dependencies: '[{"name": "pc-cpq-template-mongodb",
+        "kind": "Service"}]'
+    creationTimestamp: null
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: secure-pc-cpq-template
+  spec:
+    ports:
+    - port: 8443
+      protocol: TCP
+      targetPort: 8443
+    selector:
+      deploymentConfig: pc-cpq-template
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: spring-boot-web-jsp
+    name: spring-boot-web-jsp
+  spec:
+    ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: spring-boot-web-jsp
+      deploymentconfig: spring-boot-web-jsp
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template
+  spec:
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: pc-cpq-template:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      git:
+        ref: development
+        uri: git@github.axa.com:axa-be-esalesandservicing/be.axa.pc.cpq.api.template.git
+      sourceSecret:
+        name: my-secret-name
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: MAVEN_MIRROR_URL
+          value: http://10.243.145.63:7000/artifactory/libs-releases
+        - name: ARTIFACT_DIR
+        - name: HTTP_PROXY
+          value: http://egress-http-proxy:8080
+        - name: HTTPS_PROXY
+          value: http://egress-http-proxy:8080
+        - name: http_proxy
+          value: http://egress-http-proxy:8080
+        - name: https_proxy
+          value: http://egress-http-proxy:8080
+        - name: HTTP_PROXY_HOST
+          value: egress-http-proxy
+        - name: HTTP_PROXY_PORT
+          value: "8080"
+        forcePull: true
+        from:
+          kind: ImageStreamTag
+          name: jboss-webserver30-tomcat8-openshift:1.3
+          namespace: openshift
+      type: Source
+    triggers:
+    - github:
+        secret: abqttuIB
+      type: GitHub
+    - generic:
+        secret: hWQ5MG4h
+      type: Generic
+    - imageChange: {}
+      type: ImageChange
+    - type: ConfigChange
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    labels:
+      build: spring-boot-web-jsp
+    name: spring-boot-web-jsp
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: spring-boot-web-jsp:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      dockerStrategy:
+        from:
+          kind: ImageStreamTag
+          name: amazoncorretto:8
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - github:
+        secret: 7-VYPONtJiklkdMviYg7
+      type: GitHub
+    - generic:
+        secret: aJPCfBOXuG3T6R3vF6Rg
+      type: Generic
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    labels:
+      build: templatebuild
+    name: templatebuild
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: templatebuild:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      dockerStrategy:
+        from:
+          kind: ImageStreamTag
+          name: tomcat:8.0
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - github:
+        secret: wa8um9webR9p1lSFS3q9
+      type: GitHub
+    - generic:
+        secret: 15F-KCJaIaoP_C6dmU93
+      type: Generic
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: pc-cpq-template
+      openshift.io/build.number: "36"
+      openshift.io/build.pod-name: pc-cpq-template-36-build
+    creationTimestamp: null
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      buildconfig: pc-cpq-template
+      openshift.io/build-config.name: pc-cpq-template
+      openshift.io/build.start-policy: Serial
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template-36
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: pc-cpq-template
+      uid: f41f7790-d6af-11e8-b034-02a300ce655d
+  spec:
+    nodeSelector: null
+    output:
+      pushSecret:
+        name: builder-dockercfg-tr762
+      to:
+        kind: ImageStreamTag
+        name: pc-cpq-template:latest
+    postCommit: {}
+    resources: {}
+    revision:
+      git:
+        author:
+          email: kumar.ashish.external@axa.be
+          name: Ashish Kumar
+        commit: 74fa747c20414b8662a70098328c8e5fa6f19bd7
+        committer:
+          email: noreply@cm-ghe-elb01-927763692.eu-central-1.elb.amazonaws.com
+          name: GitHub Enterprise
+        message: sonarqube bug fix
+      type: Git
+    serviceAccount: builder
+    source:
+      git:
+        ref: development
+        uri: git@github.axa.com:axa-be-esalesandservicing/be.axa.pc.cpq.api.template.git
+      sourceSecret:
+        name: my-secret-name
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: MAVEN_MIRROR_URL
+          value: http://10.243.145.63:7000/artifactory/libs-releases
+        - name: ARTIFACT_DIR
+        - name: HTTP_PROXY
+          value: http://egress-http-proxy:8080
+        - name: HTTPS_PROXY
+          value: http://egress-http-proxy:8080
+        - name: http_proxy
+          value: http://egress-http-proxy:8080
+        - name: https_proxy
+          value: http://egress-http-proxy:8080
+        - name: HTTP_PROXY_HOST
+          value: egress-http-proxy
+        - name: HTTP_PROXY_PORT
+          value: "8080"
+        forcePull: true
+        from:
+          kind: DockerImage
+          name: registry.access.redhat.com/jboss-webserver-3/webserver30-tomcat8-openshift@sha256:0089883f8e4387618946cd24378a447b8cf7e5dfaa146b94acab27fc5e170a14
+      type: Source
+    triggeredBy:
+    - message: Manually triggered
+  status:
+    config:
+      name: pc-cpq-template
+    logSnippet: |-
+      [ERROR] For more information about the errors and possible solutions, please read the following articles:
+      [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/ProjectBuildingException
+      [ERROR] [Help 2] http://cwiki.apache.org/confluence/display/MAVEN/UnresolvableModelException
+      Aborting due to error code 1 from Maven build
+      error: build error: non-zero (13) exit code from registry....83f8e4387618946cd24378a447b8cf7e5dfaa146b94acab27fc5e170a14
+    message: Assemble script failed.
+    output: {}
+    outputDockerImageReference: 172.30.37.22:5000/pccorp-esales-dev-axa-be/pc-cpq-template:latest
+    phase: New
+    reason: AssembleFailed
+    stages:
+    - durationMilliseconds: 987
+      name: FetchInputs
+      startTime: 2019-02-05T15:11:03Z
+      steps:
+      - durationMilliseconds: 987
+        name: FetchGitSource
+        startTime: 2019-02-05T15:11:03Z
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.number: "1"
+      openshift.io/build.pod-name: spring-boot-web-jsp-1-build
+    creationTimestamp: null
+    labels:
+      build: spring-boot-web-jsp
+      buildconfig: spring-boot-web-jsp
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.start-policy: Serial
+    name: spring-boot-web-jsp-1
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: spring-boot-web-jsp
+      uid: dca2a601-29e5-11e9-b20e-02d7906e6061
+  spec:
+    nodeSelector: null
+    output:
+      pushSecret:
+        name: builder-dockercfg-tr762
+      to:
+        kind: ImageStreamTag
+        name: spring-boot-web-jsp:latest
+    postCommit: {}
+    resources: {}
+    revision:
+      git:
+        author:
+          email: guy.chauliac@gmail.com
+          name: Guy Chauliac
+        commit: 4de7fd332209bda78c63507b1c9c8535ebf97cc6
+        committer:
+          email: noreply@github.com
+          name: GitHub
+        message: Update readme.md
+      type: Git
+    serviceAccount: builder
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799
+      type: Docker
+    triggeredBy: []
+  status:
+    config:
+      name: spring-boot-web-jsp
+    output:
+      to:
+        imageDigest: sha256:2c1f32c9fa7f4dfabd4417f19db32d161235812340d3ba2d969b70c48677bda7
+    outputDockerImageReference: 172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest
+    phase: New
+    stages:
+    - durationMilliseconds: 20706
+      name: PullImages
+      startTime: 2019-02-06T08:15:06Z
+      steps:
+      - durationMilliseconds: 20706
+        name: PullBaseImage
+        startTime: 2019-02-06T08:15:06Z
+    - durationMilliseconds: 9977
+      name: Build
+      startTime: 2019-02-06T08:15:27Z
+      steps:
+      - durationMilliseconds: 9977
+        name: DockerBuild
+        startTime: 2019-02-06T08:15:27Z
+    - durationMilliseconds: 30258
+      name: PushImage
+      startTime: 2019-02-06T08:15:37Z
+      steps:
+      - durationMilliseconds: 30258
+        name: PushDockerImage
+        startTime: 2019-02-06T08:15:37Z
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.number: "2"
+      openshift.io/build.pod-name: spring-boot-web-jsp-2-build
+    creationTimestamp: null
+    labels:
+      build: spring-boot-web-jsp
+      buildconfig: spring-boot-web-jsp
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.start-policy: Serial
+    name: spring-boot-web-jsp-2
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: spring-boot-web-jsp
+      uid: dca2a601-29e5-11e9-b20e-02d7906e6061
+  spec:
+    nodeSelector: null
+    output:
+      pushSecret:
+        name: builder-dockercfg-tr762
+      to:
+        kind: ImageStreamTag
+        name: spring-boot-web-jsp:latest
+    postCommit: {}
+    resources: {}
+    revision:
+      git:
+        author:
+          email: guy.chauliac@gmail.com
+          name: Guy Chauliac
+        commit: 4de7fd332209bda78c63507b1c9c8535ebf97cc6
+        committer:
+          email: noreply@github.com
+          name: GitHub
+        message: Update readme.md
+      type: Git
+    serviceAccount: builder
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799
+      type: Docker
+    triggeredBy: []
+  status:
+    config:
+      name: spring-boot-web-jsp
+    message: Failed to fetch the input source.
+    output: {}
+    outputDockerImageReference: 172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest
+    phase: New
+    reason: FetchSourceFailed
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.number: "3"
+      openshift.io/build.pod-name: spring-boot-web-jsp-3-build
+    creationTimestamp: null
+    labels:
+      build: spring-boot-web-jsp
+      buildconfig: spring-boot-web-jsp
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.start-policy: Serial
+    name: spring-boot-web-jsp-3
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: spring-boot-web-jsp
+      uid: dca2a601-29e5-11e9-b20e-02d7906e6061
+  spec:
+    nodeSelector: null
+    output:
+      pushSecret:
+        name: builder-dockercfg-tr762
+      to:
+        kind: ImageStreamTag
+        name: spring-boot-web-jsp:latest
+    postCommit: {}
+    resources: {}
+    revision:
+      git:
+        author:
+          email: guy.chauliac@gmail.com
+          name: Guy Chauliac
+        commit: 4de7fd332209bda78c63507b1c9c8535ebf97cc6
+        committer:
+          email: noreply@github.com
+          name: GitHub
+        message: Update readme.md
+      type: Git
+    serviceAccount: builder
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799
+      type: Docker
+    triggeredBy: []
+  status:
+    config:
+      name: spring-boot-web-jsp
+    output:
+      to:
+        imageDigest: sha256:844f0118940e92f9e061f229c28013a2f31fcb0c13b7c50921faa528d6244a06
+    outputDockerImageReference: 172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest
+    phase: New
+    stages:
+    - durationMilliseconds: 22888
+      name: PullImages
+      startTime: 2019-02-06T08:42:26Z
+      steps:
+      - durationMilliseconds: 22888
+        name: PullBaseImage
+        startTime: 2019-02-06T08:42:26Z
+    - durationMilliseconds: 30688
+      name: Build
+      startTime: 2019-02-06T08:42:49Z
+      steps:
+      - durationMilliseconds: 30688
+        name: DockerBuild
+        startTime: 2019-02-06T08:42:49Z
+    - durationMilliseconds: 5071
+      name: PushImage
+      startTime: 2019-02-06T08:43:20Z
+      steps:
+      - durationMilliseconds: 5071
+        name: PushDockerImage
+        startTime: 2019-02-06T08:43:20Z
+- apiVersion: v1
+  kind: Build
+  metadata:
+    annotations:
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.number: "4"
+    creationTimestamp: null
+    labels:
+      build: spring-boot-web-jsp
+      buildconfig: spring-boot-web-jsp
+      openshift.io/build-config.name: spring-boot-web-jsp
+      openshift.io/build.start-policy: Serial
+    name: spring-boot-web-jsp-4
+    ownerReferences:
+    - apiVersion: build.openshift.io/v1
+      controller: true
+      kind: BuildConfig
+      name: spring-boot-web-jsp
+      uid: dca2a601-29e5-11e9-b20e-02d7906e6061
+  spec:
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: spring-boot-web-jsp:latest
+    postCommit: {}
+    resources: {}
+    revision:
+      git:
+        author:
+          email: guy.chauliac@gmail.com
+          name: Guy Chauliac
+        commit: 4de7fd332209bda78c63507b1c9c8535ebf97cc6
+        committer:
+          email: noreply@github.com
+          name: GitHub
+        message: Update readme.md
+      type: Git
+    serviceAccount: builder
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: amazoncorretto@sha256:b4f41fc7b181f4172f1d4f6e8b53e97de332e8dc4aab322329aab00f96cf7799
+      type: Docker
+    triggeredBy: []
+  status:
+    cancelled: true
+    config:
+      name: spring-boot-web-jsp
+    message: The build was cancelled by the user.
+    output: {}
+    phase: New
+    reason: CancelledBuild
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: openpaas-jenkins-deploy
+      created-by: template
+      template: openpaas-jenkins-deploy
+    name: openpaas-jenkins-deploy
+  spec:
+    replicas: 0
+    selector:
+      app: openpaas-jenkins-deploy
+      deploymentconfig: openpaas-jenkins-deploy
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 1200
+      resources:
+        limits:
+          cpu: 187m
+          memory: 512Mi
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: openpaas-jenkins-deploy
+          deploymentconfig: openpaas-jenkins-deploy
+      spec:
+        containers:
+        - env:
+          - name: OPENSHIFT_ENABLE_OAUTH
+            value: "false"
+          - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
+            value: "true"
+          - name: KUBERNETES_MASTER
+            value: https://kubernetes.default.svc.cluster.local:443
+          - name: KUBERNETES_TRUST_CERTIFICATES
+            value: "true"
+          - name: JNLP_SERVICE_NAME
+            value: openpaas-jenkins-deploy-jnlp
+          - name: JAVA_OPTS
+            value: -Dorg.csanchez.jenkins.plugins.kubernetes.pipeline.PodTemplateStepExecution.defaultImage=172.30.37.22:5000/jenkins/openpaas-jenkins-slave-jnlp:release
+          - name: APPLICATION_NAME
+            value: openpaas-jenkins-deploy
+          - name: AUTO_INSTALL
+            value: "False"
+          - name: NAME_SPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: DOCKER_REGISTRY_ENDPOINT
+            value: 172.30.37.22:5000
+          - name: http_proxy
+            value: http://egress-http-proxy:8080
+          - name: https_proxy
+            value: http://egress-http-proxy:8080
+          - name: HTTP_PROXY
+            value: http://egress-http-proxy:8080
+          - name: HTTPS_PROXY
+            value: http://egress-http-proxy:8080
+          image: 172.30.37.22:5000/jenkins/jenkins-openpaas:release
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 420
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: jenkins-openpaas
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 50000
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 150m
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/jenkins
+            name: jenkins-openpaas-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: openpaas-jenkins-deploy
+        serviceAccountName: openpaas-jenkins-deploy
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: jenkins-openpaas-data
+          persistentVolumeClaim:
+            claimName: jenkins-openpaas-data
+    test: false
+    triggers:
+    - type: ConfigChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template
+  spec:
+    replicas: 1
+    selector:
+      deploymentConfig: pc-cpq-template
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          application: pc-cpq-template
+          deploymentConfig: pc-cpq-template
+        name: pc-cpq-template
+      spec:
+        containers:
+        - env:
+          - name: DB_SERVICE_PREFIX_MAPPING
+            value: pc-cpq-template-mongodb=DB
+          - name: DB_JNDI
+          - name: DB_USERNAME
+            value: layoutdbit
+          - name: DB_PASSWORD
+            value: jpGGMssDtBT0gCmwCIXKZbSD
+          - name: DB_DATABASE
+            value: pcCpqTemplate
+          - name: DB_ADMIN_PASSWORD
+            value: YqcwqNiJ
+          - name: DB_MIN_POOL_SIZE
+          - name: DB_MAX_POOL_SIZE
+          - name: DB_TX_ISOLATION
+          - name: JWS_HTTPS_CERTIFICATE_DIR
+            value: /etc/jws-secret-volume
+          - name: JWS_HTTPS_CERTIFICATE
+            value: server.crt
+          - name: JWS_HTTPS_CERTIFICATE_KEY
+            value: server.key
+          - name: JWS_HTTPS_CERTIFICATE_PASSWORD
+          - name: JWS_ADMIN_USERNAME
+            value: lC6Aj4L8
+          - name: JWS_ADMIN_PASSWORD
+            value: EqtcEJgr
+          image: pc-cpq-template
+          imagePullPolicy: Always
+          name: pc-cpq-template
+          ports:
+          - containerPort: 8778
+            name: jolokia
+            protocol: TCP
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          - containerPort: 8443
+            name: https
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - curl --noproxy '*' -s -u lC6Aj4L8:EqtcEJgr 'http://localhost:8080/manager/jmxproxy/?get=Catalina%3Atype%3DServer&att=stateName'
+                |grep -iq 'stateName *= *STARTED'
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /etc/jws-secret-volume
+            name: jws-certificate-volume
+            readOnly: true
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: jws-service-account
+        serviceAccountName: jws-service-account
+        terminationGracePeriodSeconds: 60
+        volumes:
+        - name: jws-certificate-volume
+          secret:
+            defaultMode: 420
+            secretName: jws-pc-cpq-template-secret
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - pc-cpq-template
+        from:
+          kind: ImageStreamTag
+          name: pc-cpq-template:latest
+          namespace: pccorp-esales-dev-axa-be
+      type: ImageChange
+    - type: ConfigChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template-mongodb
+  spec:
+    replicas: 1
+    selector:
+      deploymentConfig: pc-cpq-template-mongodb
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          application: pc-cpq-template
+          deploymentConfig: pc-cpq-template-mongodb
+        name: pc-cpq-template-mongodb
+      spec:
+        containers:
+        - env:
+          - name: MONGODB_USER
+            value: layoutdbit
+          - name: MONGODB_PASSWORD
+            value: jpGGMssDtBT0gCmwCIXKZbSD
+          - name: MONGODB_DATABASE
+            value: pcCpqTemplate
+          - name: MONGODB_ADMIN_PASSWORD
+            value: YqcwqNiJ
+          - name: MONGODB_NOPREALLOC
+          - name: MONGODB_SMALLFILES
+          - name: MONGODB_QUIET
+          image: registry.access.redhat.com/rhscl/mongodb-32-rhel7@sha256:8fea1e4a7f3ae48a2e49b74eaa23b919cb7f4ce1d2a2037fc612769116c1e4e5
+          imagePullPolicy: Always
+          name: pc-cpq-template-mongodb
+          ports:
+          - containerPort: 27017
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/mongodb/data
+            name: pc-cpq-template-mongodb-pvol
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 60
+        volumes:
+        - name: pc-cpq-template-mongodb-pvol
+          persistentVolumeClaim:
+            claimName: pc-cpq-template-mongodb-claim
+        - name: volume-d1kb6
+          persistentVolumeClaim:
+            claimName: pc-cpq-template-mongodb-claim
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - pc-cpq-template-mongodb
+        from:
+          kind: ImageStreamTag
+          name: mongodb:3.2
+          namespace: openshift
+      type: ImageChange
+    - type: ConfigChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: spring-boot-web-jsp
+    name: spring-boot-web-jsp
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      app: spring-boot-web-jsp
+      deploymentconfig: spring-boot-web-jsp
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: spring-boot-web-jsp
+          deploymentconfig: spring-boot-web-jsp
+      spec:
+        containers:
+        - image: 172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp@sha256:844f0118940e92f9e061f229c28013a2f31fcb0c13b7c50921faa528d6244a06
+          imagePullPolicy: Always
+          name: spring-boot-web-jsp
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - spring-boot-web-jsp
+        from:
+          kind: ImageStreamTag
+          name: spring-boot-web-jsp:latest
+          namespace: pccorp-esales-dev-axa-be
+      type: ImageChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+      openshift.io/image.dockerRepositoryCheck: 2019-02-06T08:04:44Z
+    creationTimestamp: null
+    generation: 2
+    labels:
+      build: spring-boot-web-jsp
+    name: amazoncorretto
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations:
+        openshift.io/imported-from: amazoncorretto:8
+      from:
+        kind: DockerImage
+        name: 172.30.37.22:5000/pccorp-esales-dev-axa-be/amazoncorretto:8
+      generation: 2
+      importPolicy: {}
+      name: "8"
+      referencePolicy:
+        type: Source
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    generation: 1
+    labels:
+      build: dockerbuild
+    name: dockerbuild
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc.cpq.template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc.cpq.template
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    generation: 1
+    labels:
+      build: spring-boot-web-jsp
+    name: spring-boot-web-jsp
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: 172.30.37.22:5000/pccorp-esales-dev-axa-be/spring-boot-web-jsp:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: ""
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    generation: 1
+    labels:
+      build: templatebuild
+    name: templatebuild
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+      openshift.io/image.dockerRepositoryCheck: 2019-02-05T15:34:25Z
+    creationTimestamp: null
+    generation: 2
+    labels:
+      build: dockerbuild
+    name: tomcat
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations:
+        openshift.io/imported-from: tomcat:8.0
+      from:
+        kind: DockerImage
+        name: 172.30.37.22:5000/pccorp-esales-dev-axa-be/tomcat:8.0
+      generation: 2
+      importPolicy: {}
+      name: "8.0"
+      referencePolicy:
+        type: Source
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "false"
+    creationTimestamp: null
+    labels:
+      app: openpaas-jenkins-deploy
+      created-by: template
+      router: internal
+      template: openpaas-jenkins-deploy
+    name: openpaas-jenkins-deploy
+  spec:
+    host: be.axa.pccorp.jenkins.pink.eu-central-1.aws.openpaas.axa-cloud.com
+    port:
+      targetPort: 8080-tcp
+    tls:
+      termination: edge
+    to:
+      kind: Service
+      name: openpaas-jenkins-deploy
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress:
+    - conditions:
+      - lastTransitionTime: 2018-11-07T20:45:58Z
+        status: "True"
+        type: Admitted
+      host: be.axa.pccorp.jenkins.pink.eu-central-1.aws.openpaas.axa-cloud.com
+      routerName: axa-be-dev-internal
+      wildcardPolicy: None
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      description: Route for application's http service.
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: pc-cpq-template
+  spec:
+    host: pc-cpq-template-pccorp-esales-dev-axa-be.router.default.svc.cluster.local
+    to:
+      kind: Service
+      name: pc-cpq-template
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress: null
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      description: Route for application's https service.
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    labels:
+      app: jws30-tomcat8-mongodb-persistent-s2i
+      application: pc-cpq-template
+      template: jws30-tomcat8-mongodb-persistent-s2i
+      xpaas: 1.4.0
+    name: secure-pc-cpq-template
+  spec:
+    host: secure-pc-cpq-template-pccorp-esales-dev-axa-be.router.default.svc.cluster.local
+    tls:
+      termination: passthrough
+    to:
+      kind: Service
+      name: secure-pc-cpq-template
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress: null
+kind: List
+metadata: {}
