@@ -15,11 +15,16 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - mvn test 
+      - mvn clean install
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
       - echo Build completed on `date`
-      - mvn package
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
 artifacts:
   files:
     - target/spring-boot-web-jsp-1.0.war
