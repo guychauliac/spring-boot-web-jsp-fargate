@@ -34,7 +34,7 @@
 	<div class="container">
 
 		<div class="starter-template">
-			<h1>Spring Boot Web JSP Example Update 11:42</h1>
+			<h1>Spring Boot Web JSP Example Update 12:37</h1>
 			<h2>Message: ${message}</h2>
 		</div>
 
