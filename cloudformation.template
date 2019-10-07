@@ -1,16 +1,51 @@
 {
-    "AWSTemplateFormatVersion": "2010-09-09",
-    "Parameters": {
-       "ecrName" : {
-         "Type" : "String"
-       }
-    },
-    "Resources": {
-        "ECRR1QTPN": {
-            "Type": "AWS::ECR::Repository",
-            "Properties": {
-                "RepositoryName" : {"Ref" : "ecrName"}
-            }
-        }
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Parameters" : {
+    "applicationName" : {
+      "Type" : "String"
     }
+  },
+  "Outputs" : {
+    "MyStackName" : {
+      "Value" : {
+        "Ref" : "AWS::StackName"
+      }
+    }
+  },
+  "Resources" : {
+    "ImageRepository" : {
+      "Type" : "AWS::ECR::Repository",
+      "Properties" : {
+        "RepositoryName" : {
+          "Ref" : "applicationName"
+        }
+      }
+    },
+    "VPC" : {
+      "Type" : "AWS::EC2::VPC",
+      "Properties" : {
+        "CidrBlock" : "10.0.0.0/16"
+      }
+    },
+    "Subnet1" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "AvailabilityZone" : "eu-west-1a",
+        "CidrBlock" : "10.0.0.0/24",
+        "VpcId" : {
+          "Ref" : "VPC"
+        }
+      }
+    },
+    "Subnet2" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "AvailabilityZone" : "eu-west-1a",
+        "CidrBlock" : "10.0.1.0/24",
+        "VpcId" : {
+          "Ref" : "VPC"
+        }
+      }
+    }
+  }
 }
