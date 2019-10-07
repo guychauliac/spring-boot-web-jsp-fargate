@@ -88,7 +88,7 @@ After installing the CLI configure it to [connect to your account](https://docs.
 	
 # Pushing the image to AWS ECR (Elastic Container Registry)
 
-An ECR is a repository for docker images.  Each AWS account has a single deafult ECR.  In our example we will create a new ECR and upload the image to this repository.
+An ECR is a repository for docker images.  Each AWS account has a single default ECR.  In our example we will create a new ECR and upload the image to this repository.
 
 Logon to your AWS account and search for the service 'ECR'.
 Click on 'Create Repository'
