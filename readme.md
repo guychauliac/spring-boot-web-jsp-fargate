@@ -179,13 +179,13 @@ Use 'CMD-SHELL,curl -f http://localhost:8080 || exit 1' as healt check command
 
 Leave all the other options and click create
 
-https://aws.amazon.com/blogs/compute/building-deploying-and-operating-containerized-applications-with-aws-fargate/
+[building-deploying-and-operating-containerized-applications-with-aws-fargate](https://aws.amazon.com/blogs/compute/building-deploying-and-operating-containerized-applications-with-aws-fargate/)
 
 # Setting up a Load Balancer
 
 We will setup an [application load balancer](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html)
 
-The applicatation load balancer will be the access point from the internet.  It will receive a DNS entry which is publically available.
+The application load balancer will be the access point from the internet.  It will receive a DNS entry which is publically available.
 
 Later we will define a Fargate service which will be running in 2 Availability Zones.  The load balancer will spread the requests across the 2 availability zones. 
 
@@ -199,7 +199,7 @@ Select 'Application Load Balancer', click on 'Create'
 
 As name type 'ApplicationLoadBalancer'
 
-Use 'internal facing'
+Use 'internet-facing'
 
 Use IPV4
 
