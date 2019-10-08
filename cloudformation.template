@@ -122,6 +122,32 @@
         "Type" : "application"
       }
     },
+    "HTTPlistener" : {
+      "Type" : "AWS::ElasticLoadBalancingV2::Listener",
+      "Properties" : {
+        "DefaultActions" : [ {
+          "Type" : "forward",
+          "TargetGroupArn" : {
+            "Ref" : "targetGroup"
+          }
+        } ],
+        "LoadBalancerArn" : {
+          "Ref" : "loadBalancer"
+        },
+        "Port" : 80,
+        "Protocol" : "HTTP"
+      }
+    },
+    "targetGroup" : {
+      "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+      "Properties" : {
+        "Port" : "8080",
+        "Protocol" : "HTTP",
+        "VpcId" : {
+          "Ref" : "VPC"
+        }
+      }
+    },
     "loadBalancerSecurityGroup" : {
       "Type" : "AWS::EC2::SecurityGroup",
       "Properties" : {
@@ -129,9 +155,9 @@
         "GroupName" : "LoadBalancerSecurityGroup",
         "SecurityGroupIngress" : [ {
           "CidrIp" : "0.0.0.0/0",
-          "FromPort" : 8080,
+          "FromPort" : 80,
           "IpProtocol" : "TCP",
-          "ToPort" : 8080
+          "ToPort" : 80
         } ],
         "VpcId" : {
           "Ref" : "VPC"
