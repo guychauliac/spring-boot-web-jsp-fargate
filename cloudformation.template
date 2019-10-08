@@ -164,11 +164,23 @@
         }
       }
     },
-    "Cluster" : {
+    "cluster" : {
       "Type" : "AWS::ECS::Cluster",
       "Properties" : {
         "ClusterName" : {
           "Ref" : "applicationName"
+        }
+      }
+    },
+    "service" : {
+      "Type" : "AWS::ECS::Service",
+      "Properties" : {
+        "Cluster" : {
+          "Ref" : "cluster"
+        },
+        "DesiredCount" : "1",
+        "TaskDefinition" : {
+          "Ref" : "taskdefinition"
         }
       }
     }
