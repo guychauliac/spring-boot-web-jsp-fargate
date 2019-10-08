@@ -163,6 +163,14 @@
           "Ref" : "VPC"
         }
       }
+    },
+    "Cluster" : {
+      "Type" : "AWS::ECS::Cluster",
+      "Properties" : {
+        "ClusterName" : {
+          "Ref" : "applicationName"
+        }
+      }
     }
   }
 }
