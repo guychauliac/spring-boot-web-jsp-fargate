@@ -100,7 +100,7 @@
           "Name" : {
             "Ref" : "applicationName"
           },
-          "Image" : "829867751173.dkr.ecr.eu-west-1.amazonaws.com/applications/spring-boot-web-jsp:build-4c512481-7fe2-4054-8ae0-35e15d3401cf",
+          "Image" : "829867751173.dkr.ecr.eu-west-1.amazonaws.com/applications/spring-boot-web-jsp:latest",
           "PortMappings" : [ {
             "ContainerPort" : "8080",
             "HostPort" : "8080"
@@ -171,7 +171,7 @@
       "Type" : "AWS::EC2::SecurityGroup",
       "Properties" : {
         "GroupDescription" : "Load Balancer Security Group",
-        "GroupName" : "LoadBalancerSecurityGroup",
+        "GroupName" : "loadBalancerSecurityGroup",
         "SecurityGroupIngress" : [ {
           "CidrIp" : "0.0.0.0/0",
           "FromPort" : 80,
@@ -186,8 +186,8 @@
     "serviceSecurityGroup" : {
       "Type" : "AWS::EC2::SecurityGroup",
       "Properties" : {
-        "GroupDescription" : "Load Balancer Security Group",
-        "GroupName" : "LoadBalancerSecurityGroup",
+        "GroupDescription" : "Service security group",
+        "GroupName" : "serviceSecurityGroup",
         "SecurityGroupIngress" : [ {
           "CidrIp" : "0.0.0.0/0",
           "FromPort" : 8080,
@@ -210,6 +210,7 @@
     "service" : {
       "Type" : "AWS::ECS::Service",
       "Properties" : {
+        "LaunchType" : "FARGATE",
         "Cluster" : {
           "Ref" : "cluster"
         },
@@ -219,15 +220,15 @@
         },
         "NetworkConfiguration" : {
           "AwsvpcConfiguration" : {
-            "subnets" : [ {
+            "Subnets" : [ {
               "Ref" : "Subnet1"
             }, {
               "Ref" : "Subnet2"
             } ],
-            "securityGroups" : [ {
+            "SecurityGroups" : [ {
               "Ref" : "serviceSecurityGroup"
             } ],
-            "assignPublicIp" : "DISABLED"
+            "AssignPublicIp" : "DISABLED"
           }
         }
       }
