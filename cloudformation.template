@@ -91,6 +91,7 @@
     "taskdefinition" : {
       "Type" : "AWS::ECS::TaskDefinition",
       "Properties" : {
+        "TaskRoleArn" : "arn:aws:iam::829867751173:role/ecsTaskExecutionRole",
         "ExecutionRoleArn" : "arn:aws:iam::829867751173:role/ecsTaskExecutionRole",
         "RequiresCompatibilities" : [ "FARGATE" ],
         "NetworkMode" : "awsvpc",
@@ -194,6 +195,12 @@
           "IpProtocol" : "TCP",
           "ToPort" : 8080
         } ],
+        "SecurityGroupEgress" : [ {
+          "CidrIp" : "0.0.0.0/0",
+          "FromPort" : 0,
+          "ToPort" : 65535,
+          "IpProtocol" : "TCP"
+        } ],
         "VpcId" : {
           "Ref" : "VPC"
         }
@@ -228,7 +235,7 @@
             "SecurityGroups" : [ {
               "Ref" : "serviceSecurityGroup"
             } ],
-            "AssignPublicIp" : "DISABLED"
+            "AssignPublicIp" : "ENABLED"
           }
         }
       }
