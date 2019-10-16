@@ -19,7 +19,13 @@
       "Properties" : {
         "RepositoryName" : {
           "Ref" : "applicationName"
-        }
+        },
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
       }
     },
     "VPC" : {
@@ -28,11 +34,25 @@
       "Properties" : {
         "CidrBlock" : "10.0.0.0/16",
         "EnableDnsHostnames" : "true",
-        "EnableDnsSupport" : "true"
+        "EnableDnsSupport" : "true",
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
       }
     },
     "internetGateway" : {
-      "Type" : "AWS::EC2::InternetGateway"
+      "Type" : "AWS::EC2::InternetGateway",
+      "Properties" : {
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
+      }
     },
     "AttachGateway" : {
       "Type" : "AWS::EC2::VPCGatewayAttachment",
@@ -53,7 +73,13 @@
         "CidrBlock" : "10.0.0.0/24",
         "VpcId" : {
           "Ref" : "VPC"
-        }
+        },
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
       }
     },
     "Subnet2" : {
@@ -64,7 +90,13 @@
         "CidrBlock" : "10.0.1.0/24",
         "VpcId" : {
           "Ref" : "VPC"
-        }
+        },
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
       }
     },
     "routeTable" : {
@@ -72,6 +104,34 @@
       "Properties" : {
         "VpcId" : {
           "Ref" : "VPC"
+        },
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
+      }
+    },
+    "subnet1RouteTableAssocation" : {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "RouteTableId" : {
+          "Ref" : "routeTable"
+        },
+        "SubnetId" : {
+          "Ref" : "Subnet1"
+        }
+      }
+    },
+    "subnet2RouteTableAssocation" : {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "RouteTableId" : {
+          "Ref" : "routeTable"
+        },
+        "SubnetId" : {
+          "Ref" : "Subnet2"
         }
       }
     },
@@ -117,13 +177,28 @@
             "LogDriver" : "awslogs",
             "Options" : {
               "awslogs-group" : {
-                "Ref" : "applicationName"
+                "Ref" : "logGroup"
               },
               "awslogs-region" : "eu-west-1",
               "awslogs-stream-prefix" : "ecs"
             }
           }
+        } ],
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
         } ]
+      }
+    },
+    "logGroup" : {
+      "Type" : "AWS::Logs::LogGroup",
+      "Properties" : {
+        "LogGroupName" : {
+          "Ref" : "applicationName"
+        },
+        "RetentionInDays" : 14
       }
     },
     "loadBalancer" : {
@@ -139,7 +214,13 @@
         }, {
           "Ref" : "Subnet2"
         } ],
-        "Type" : "application"
+        "Type" : "application",
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
       }
     },
     "HTTPlistener" : {
@@ -165,7 +246,13 @@
         "Protocol" : "HTTP",
         "VpcId" : {
           "Ref" : "VPC"
-        }
+        },
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
       }
     },
     "loadBalancerSecurityGroup" : {
@@ -181,7 +268,13 @@
         } ],
         "VpcId" : {
           "Ref" : "VPC"
-        }
+        },
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
       }
     },
     "serviceSecurityGroup" : {
@@ -203,7 +296,13 @@
         } ],
         "VpcId" : {
           "Ref" : "VPC"
-        }
+        },
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
       }
     },
     "cluster" : {
@@ -211,7 +310,13 @@
       "Properties" : {
         "ClusterName" : {
           "Ref" : "applicationName"
-        }
+        },
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
       }
     },
     "service" : {
@@ -237,7 +342,13 @@
             } ],
             "AssignPublicIp" : "ENABLED"
           }
-        }
+        },
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
       }
     }
   }
