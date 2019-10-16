@@ -247,6 +247,10 @@
         "VpcId" : {
           "Ref" : "VPC"
         },
+        "Name" : {
+          "Ref" : "applicationName"
+        },
+        "TargetType" : "ip",
         "Tags" : [ {
           "Key" : "Name",
           "Value" : {
@@ -326,10 +330,19 @@
         "Cluster" : {
           "Ref" : "cluster"
         },
-        "DesiredCount" : "0",
+        "DesiredCount" : "1",
         "TaskDefinition" : {
           "Ref" : "taskdefinition"
         },
+        "LoadBalancers" : [ {
+          "ContainerName" : {
+            "Ref" : "applicationName"
+          },
+          "ContainerPort" : 8080,
+          "TargetGroupArn" : {
+            "Ref" : "targetGroup"
+          }
+        } ],
         "NetworkConfiguration" : {
           "AwsvpcConfiguration" : {
             "Subnets" : [ {
