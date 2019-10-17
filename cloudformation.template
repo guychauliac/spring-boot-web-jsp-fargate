@@ -241,6 +241,7 @@
     },
     "targetGroup" : {
       "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+      "DependsOn" : "loadBalancer",
       "Properties" : {
         "Port" : "8080",
         "Protocol" : "HTTP",
