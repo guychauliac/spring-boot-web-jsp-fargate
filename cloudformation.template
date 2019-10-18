@@ -252,6 +252,10 @@
           "Ref" : "applicationName"
         },
         "TargetType" : "ip",
+        "HealthCheckTimeoutSeconds" : "5",
+        "HealthCheckEnabled" : "true",
+        "HealthCheckPath" : "/",
+        "HealthCheckIntervalSeconds" : "60",
         "Tags" : [ {
           "Key" : "Name",
           "Value" : {
@@ -331,7 +335,7 @@
         "Cluster" : {
           "Ref" : "cluster"
         },
-        "DesiredCount" : "1",
+        "DesiredCount" : "2",
         "TaskDefinition" : {
           "Ref" : "taskdefinition"
         },
