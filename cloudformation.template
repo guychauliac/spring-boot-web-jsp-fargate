@@ -54,6 +54,30 @@
         } ]
       }
     },
+    "elasticIP" : {
+      "Type" : "AWS::EC2::EIP",
+      "Properties" : {
+        "Domain" : "vpc"
+      }
+    },
+    "nat" : {
+      "Type" : "AWS::EC2::NatGateway",
+      "DependsOn" : "AttachGateway",
+      "Properties" : {
+        "AllocationId" : {
+          "Fn::GetAtt" : [ "elasticIP", "AllocationId" ]
+        },
+        "SubnetId" : {
+          "Ref" : "publicSubnet"
+        },
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
+      }
+    },
     "AttachGateway" : {
       "Type" : "AWS::EC2::VPCGatewayAttachment",
       "Properties" : {
@@ -99,7 +123,24 @@
         } ]
       }
     },
-    "routeTable" : {
+    "publicSubnet" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Description" : "ALB VPC",
+      "Properties" : {
+        "AvailabilityZone" : "eu-west-1a",
+        "CidrBlock" : "10.0.3.0/24",
+        "VpcId" : {
+          "Ref" : "VPC"
+        },
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
+      }
+    },
+    "routeTablePublicSubnet" : {
       "Type" : "AWS::EC2::RouteTable",
       "Properties" : {
         "VpcId" : {
@@ -113,11 +154,62 @@
         } ]
       }
     },
+    "routeToInternet" : {
+      "Type" : "AWS::EC2::Route",
+      "DependsOn" : "internetGateway",
+      "Properties" : {
+        "RouteTableId" : {
+          "Ref" : "routeTablePublicSubnet"
+        },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "GatewayId" : {
+          "Ref" : "internetGateway"
+        }
+      }
+    },
+    "routeTablePrivateSubnet" : {
+      "Type" : "AWS::EC2::RouteTable",
+      "Properties" : {
+        "VpcId" : {
+          "Ref" : "VPC"
+        },
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : {
+            "Ref" : "applicationName"
+          }
+        } ]
+      }
+    },
+    "routeToNAT" : {
+      "Type" : "AWS::EC2::Route",
+      "DependsOn" : "internetGateway",
+      "Properties" : {
+        "RouteTableId" : {
+          "Ref" : "routeTablePrivateSubnet"
+        },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "GatewayId" : {
+          "Ref" : "nat"
+        }
+      }
+    },
+    "publicSubnetRouteTableAssocation" : {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "RouteTableId" : {
+          "Ref" : "routeTablePublicSubnet"
+        },
+        "SubnetId" : {
+          "Ref" : "publicSubnet"
+        }
+      }
+    },
     "subnet1RouteTableAssocation" : {
       "Type" : "AWS::EC2::SubnetRouteTableAssociation",
       "Properties" : {
         "RouteTableId" : {
-          "Ref" : "routeTable"
+          "Ref" : "routeTablePrivateSubnet"
         },
         "SubnetId" : {
           "Ref" : "Subnet1"
@@ -128,23 +220,10 @@
       "Type" : "AWS::EC2::SubnetRouteTableAssociation",
       "Properties" : {
         "RouteTableId" : {
-          "Ref" : "routeTable"
+          "Ref" : "routeTablePrivateSubnet"
         },
         "SubnetId" : {
           "Ref" : "Subnet2"
-        }
-      }
-    },
-    "routeToInternet" : {
-      "Type" : "AWS::EC2::Route",
-      "DependsOn" : "internetGateway",
-      "Properties" : {
-        "RouteTableId" : {
-          "Ref" : "routeTable"
-        },
-        "DestinationCidrBlock" : "0.0.0.0/0",
-        "GatewayId" : {
-          "Ref" : "internetGateway"
         }
       }
     },
