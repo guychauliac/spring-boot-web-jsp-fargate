@@ -11,6 +11,11 @@
       "Value" : {
         "Ref" : "AWS::StackName"
       }
+    },
+    "URL" : {
+      "Value" : {
+        "Fn::GetAtt" : [ "loadBalancer", "DNSName" ]
+      }
     }
   },
   "Resources" : {
