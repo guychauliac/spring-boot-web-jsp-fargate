@@ -374,5 +374,156 @@
         } ]
       }
     }
+  },
+  "ScalableTarget" : {
+    "Type" : "AWS::ApplicationAutoScaling::ScalableTarget",
+    "Properties" : {
+      "ServiceNamespace" : "ecs",
+      "ScalableDimension" : "ecs:service:DesiredCount",
+      "ResourceId" : "service",
+      "MinCapacity" : 2,
+      "MaxCapacity" : 10,
+      "RoleARN" : {
+        "Fn::ImportValue" : {
+          "Fn::Sub" : "${EnvironmentName}:AutoscalingRole"
+        }
+      }
+    }
+  },
+  "ScaleDownPolicy" : {
+    "Type" : "AWS::ApplicationAutoScaling::ScalingPolicy",
+    "DependsOn" : "ScalableTarget",
+    "Properties" : {
+      "PolicyName" : {
+        "Fn::Sub" : "scale-${EnvironmentName}-${ServiceName}-down"
+      },
+      "PolicyType" : "StepScaling",
+      "ResourceId" : {
+        "Fn::Join" : [ "/", [ "service", {
+          "Fn::ImportValue" : {
+            "Fn::Sub" : "${EnvironmentName}:ClusterName"
+          }
+        }, {
+          "Ref" : "ServiceName"
+        } ] ]
+      },
+      "ScalableDimension" : "ecs:service:DesiredCount",
+      "ServiceNamespace" : "ecs",
+      "StepScalingPolicyConfiguration" : {
+        "AdjustmentType" : "ChangeInCapacity",
+        "StepAdjustments" : [ {
+          "MetricIntervalUpperBound" : 0,
+          "ScalingAdjustment" : -1
+        } ],
+        "MetricAggregationType" : "Average",
+        "Cooldown" : 60
+      }
+    }
+  },
+  "ScaleUpPolicy" : {
+    "Type" : "AWS::ApplicationAutoScaling::ScalingPolicy",
+    "DependsOn" : "ScalableTarget",
+    "Properties" : {
+      "PolicyName" : {
+        "Fn::Sub" : "scale-${EnvironmentName}-${ServiceName}-up"
+      },
+      "PolicyType" : "StepScaling",
+      "ResourceId" : {
+        "Fn::Join" : [ "/", [ "service", {
+          "Fn::ImportValue" : {
+            "Fn::Sub" : "${EnvironmentName}:ClusterName"
+          }
+        }, {
+          "Ref" : "ServiceName"
+        } ] ]
+      },
+      "ScalableDimension" : "ecs:service:DesiredCount",
+      "ServiceNamespace" : "ecs",
+      "StepScalingPolicyConfiguration" : {
+        "AdjustmentType" : "ChangeInCapacity",
+        "StepAdjustments" : [ {
+          "MetricIntervalLowerBound" : 0,
+          "MetricIntervalUpperBound" : 15,
+          "ScalingAdjustment" : 1
+        }, {
+          "MetricIntervalLowerBound" : 15,
+          "MetricIntervalUpperBound" : 25,
+          "ScalingAdjustment" : 2
+        }, {
+          "MetricIntervalLowerBound" : 25,
+          "ScalingAdjustment" : 3
+        } ],
+        "MetricAggregationType" : "Average",
+        "Cooldown" : 60
+      }
+    }
+  },
+  "LowCpuUsageAlarm" : {
+    "Type" : "AWS::CloudWatch::Alarm",
+    "Properties" : {
+      "AlarmName" : {
+        "Fn::Sub" : "low-cpu-${EnvironmentName}-${ServiceName}"
+      },
+      "AlarmDescription" : {
+        "Fn::Sub" : "Low CPU utilization for service ${ServiceName} in environment ${EnvironmentName}"
+      },
+      "MetricName" : "CPUUtilization",
+      "Namespace" : "AWS/ECS",
+      "Dimensions" : [ {
+        "Name" : "ServiceName",
+        "Value" : {
+          "Ref" : "ServiceName"
+        }
+      }, {
+        "Name" : "ClusterName",
+        "Value" : {
+          "Fn::ImportValue" : {
+            "Fn::Sub" : "${EnvironmentName}:ClusterName"
+          }
+        }
+      } ],
+      "Statistic" : "Average",
+      "Period" : 60,
+      "EvaluationPeriods" : 1,
+      "Threshold" : 20,
+      "ComparisonOperator" : "LessThanOrEqualToThreshold",
+      "AlarmActions" : [ {
+        "Ref" : "ScaleDownPolicy"
+      } ]
+    }
+  },
+  "HighCpuUsageAlarm" : {
+    "Type" : "AWS::CloudWatch::Alarm",
+    "Properties" : {
+      "AlarmName" : {
+        "Fn::Sub" : "high-cpu-${EnvironmentName}-${ServiceName}"
+      },
+      "AlarmDescription" : {
+        "Fn::Sub" : "High CPU utilization for service ${ServiceName} in environment ${EnvironmentName}"
+      },
+      "MetricName" : "CPUUtilization",
+      "Namespace" : "AWS/ECS",
+      "Dimensions" : [ {
+        "Name" : "ServiceName",
+        "Value" : {
+          "Ref" : "ServiceName"
+        }
+      }, {
+        "Name" : "ClusterName",
+        "Value" : {
+          "Fn::ImportValue" : {
+            "Fn::Sub" : "${EnvironmentName}:ClusterName"
+          }
+        }
+      } ],
+      "Statistic" : "Average",
+      "Period" : 60,
+      "EvaluationPeriods" : 1,
+      "Threshold" : 70,
+      "ComparisonOperator" : "GreaterThanOrEqualToThreshold",
+      "AlarmActions" : [ {
+        "Ref" : "ScaleUpPolicy"
+      } ]
+    }
   }
 }
