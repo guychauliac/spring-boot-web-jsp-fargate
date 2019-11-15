@@ -383,11 +383,7 @@
       "ResourceId" : "service",
       "MinCapacity" : 2,
       "MaxCapacity" : 10,
-      "RoleARN" : {
-        "Fn::ImportValue" : {
-          "Fn::Sub" : "${EnvironmentName}:AutoscalingRole"
-        }
-      }
+      "RoleARN" : "arn:aws:iam::829867751173:role/ecsAutoscaleRole"
     }
   },
   "ScaleDownPolicy" : {
@@ -395,20 +391,12 @@
     "DependsOn" : "ScalableTarget",
     "Properties" : {
       "PolicyName" : {
-        "Fn::Sub" : "scale-${EnvironmentName}-${ServiceName}-down"
+        "Fn::Sub" : "scale-${applicationName}-down"
       },
-      "PolicyType" : "StepScaling",
-      "ResourceId" : {
-        "Fn::Join" : [ "/", [ "service", {
-          "Fn::ImportValue" : {
-            "Fn::Sub" : "${EnvironmentName}:ClusterName"
-          }
-        }, {
-          "Ref" : "ServiceName"
-        } ] ]
+      "PolicyType" : "StepScaling", 
+      "ScalingTargetId" : {
+          "Ref" : "service"
       },
-      "ScalableDimension" : "ecs:service:DesiredCount",
-      "ServiceNamespace" : "ecs",
       "StepScalingPolicyConfiguration" : {
         "AdjustmentType" : "ChangeInCapacity",
         "StepAdjustments" : [ {
@@ -425,20 +413,12 @@
     "DependsOn" : "ScalableTarget",
     "Properties" : {
       "PolicyName" : {
-        "Fn::Sub" : "scale-${EnvironmentName}-${ServiceName}-up"
+        "Fn::Sub" : "scale-${applicationName}-up"
       },
       "PolicyType" : "StepScaling",
-      "ResourceId" : {
-        "Fn::Join" : [ "/", [ "service", {
-          "Fn::ImportValue" : {
-            "Fn::Sub" : "${EnvironmentName}:ClusterName"
-          }
-        }, {
-          "Ref" : "ServiceName"
-        } ] ]
+      "ScalingTargetId" : {
+          "Ref" : "service"
       },
-      "ScalableDimension" : "ecs:service:DesiredCount",
-      "ServiceNamespace" : "ecs",
       "StepScalingPolicyConfiguration" : {
         "AdjustmentType" : "ChangeInCapacity",
         "StepAdjustments" : [ {
@@ -462,25 +442,19 @@
     "Type" : "AWS::CloudWatch::Alarm",
     "Properties" : {
       "AlarmName" : {
-        "Fn::Sub" : "low-cpu-${EnvironmentName}-${ServiceName}"
+        "Fn::Sub" : "low-cpu-${applicationName}"
       },
       "AlarmDescription" : {
-        "Fn::Sub" : "Low CPU utilization for service ${ServiceName} in environment ${EnvironmentName}"
+        "Fn::Sub" : "Low CPU utilization for application ${applicationName}"
       },
       "MetricName" : "CPUUtilization",
       "Namespace" : "AWS/ECS",
       "Dimensions" : [ {
         "Name" : "ServiceName",
-        "Value" : {
-          "Ref" : "ServiceName"
-        }
+        "Value" : "service"
       }, {
         "Name" : "ClusterName",
-        "Value" : {
-          "Fn::ImportValue" : {
-            "Fn::Sub" : "${EnvironmentName}:ClusterName"
-          }
-        }
+        "Value" : "cluster"
       } ],
       "Statistic" : "Average",
       "Period" : 60,
@@ -496,25 +470,19 @@
     "Type" : "AWS::CloudWatch::Alarm",
     "Properties" : {
       "AlarmName" : {
-        "Fn::Sub" : "high-cpu-${EnvironmentName}-${ServiceName}"
+        "Fn::Sub" : "high-cpu-${applicationName}"
       },
       "AlarmDescription" : {
-        "Fn::Sub" : "High CPU utilization for service ${ServiceName} in environment ${EnvironmentName}"
+        "Fn::Sub" : "High CPU utilization for application ${applicationName}"
       },
       "MetricName" : "CPUUtilization",
       "Namespace" : "AWS/ECS",
       "Dimensions" : [ {
         "Name" : "ServiceName",
-        "Value" : {
-          "Ref" : "ServiceName"
-        }
+        "Value" : "service"
       }, {
         "Name" : "ClusterName",
-        "Value" : {
-          "Fn::ImportValue" : {
-            "Fn::Sub" : "${EnvironmentName}:ClusterName"
-          }
-        }
+        "Value" : "cluster"
       } ],
       "Statistic" : "Average",
       "Period" : 60,
