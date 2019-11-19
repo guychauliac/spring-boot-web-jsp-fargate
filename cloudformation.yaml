@@ -243,7 +243,7 @@ Resources:
     Properties:
       PolicyName: !Sub 'scale-${applicationName}-down'
       PolicyType: StepScaling
-      ScalingTargetId: !Ref service
+      ScalingTargetId: !Ref ScalableTarget
       StepScalingPolicyConfiguration:
         AdjustmentType: ChangeInCapacity
         StepAdjustments:
@@ -257,7 +257,7 @@ Resources:
     Properties:
       PolicyName: !Sub 'scale-${applicationName}-up'
       PolicyType: StepScaling
-      ScalingTargetId: !Ref service
+      ScalingTargetId: !Ref ScalableTarget
       StepScalingPolicyConfiguration:
         AdjustmentType: ChangeInCapacity
         StepAdjustments:
