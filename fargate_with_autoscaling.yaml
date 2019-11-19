@@ -125,7 +125,7 @@ Resources:
   loadBalancer:
     Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
     Properties:
-      Name: FargateLoadBalancer
+      Name: !Ref applicationName
       SecurityGroups:
         - !Ref loadBalancerSecurityGroup
       Scheme: internet-facing
