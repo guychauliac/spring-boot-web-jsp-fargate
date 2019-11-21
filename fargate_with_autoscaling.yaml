@@ -89,11 +89,32 @@ Resources:
       RouteTableId: !Ref routeTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref internetGateway
+  taskRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName :         
+        Fn::Join:
+          - '-'
+          - - !Ref applicationName
+            - 'taskRole'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly'
+        - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
   taskdefinition:
     Type: 'AWS::ECS::TaskDefinition'
     Properties:
-      TaskRoleArn: 'arn:aws:iam::829867751173:role/ecsTaskExecutionRole'
-      ExecutionRoleArn: 'arn:aws:iam::829867751173:role/ecsTaskExecutionRole'
+      TaskRoleArn: !Ref taskRole
+      ExecutionRoleArn: !Ref taskRole
       RequiresCompatibilities:
         - FARGATE
       NetworkMode: awsvpc
