@@ -3,6 +3,12 @@ Parameters:
   applicationName:
     Type: String
     Default: applicationstack
+  lowCPU:
+    Type: String 
+    Default: 30
+  highCPU:
+    Type: String
+    Default: 70  
 Outputs:
   MyStackName:
     Value: !Ref 'AWS::StackName'
@@ -286,7 +292,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 1
-      Threshold: 20
+      Threshold: !Ref lowCPU 
       ComparisonOperator: LessThanOrEqualToThreshold
       AlarmActions:
         - !Ref ScaleDownPolicy
@@ -305,7 +311,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 1
-      Threshold: 70
+      Threshold: !Ref highCPU
       ComparisonOperator: GreaterThanOrEqualToThreshold
       AlarmActions:
         - !Ref ScaleUpPolicy
