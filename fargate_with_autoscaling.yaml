@@ -89,6 +89,26 @@ Resources:
       RouteTableId: !Ref routeTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref internetGateway
+  autoscaleRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName :         
+        Fn::Join:
+          - '-'
+          - - !Ref applicationName
+            - 'autoScaleRole'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - application-autoscaling.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns: 
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole'
   taskRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -263,7 +283,7 @@ Resources:
             - !GetAtt service.Name
       MinCapacity: 2
       MaxCapacity: 10
-      RoleARN: 'arn:aws:iam::829867751173:role/ecsAutoscaleRole'
+      RoleARN: !GetAtt autoscaleRole.Arn
   ScaleDownPolicy:
     Type: 'AWS::ApplicationAutoScaling::ScalingPolicy'
     DependsOn: ScalableTarget
