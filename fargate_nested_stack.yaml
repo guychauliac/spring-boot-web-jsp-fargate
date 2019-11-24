@@ -1,0 +1,16 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Resources" : {
+    "myStackWithParams" : {
+      "Type" : "AWS::CloudFormation::Stack",
+      "Properties" : {
+        "TemplateURL" : "https://s3-eu-west-1.amazonaws.com/guy.chauliac.cloudformation/fargate_with_autoscaling.yaml",
+        "Parameters" : {
+          "applicationName" : "testapplication",
+          "lowCPU" : "20",
+          "highCPU" : "80",
+        }
+      }
+    }
+  }
+}
